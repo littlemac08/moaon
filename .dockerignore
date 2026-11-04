@@ -3,4 +3,7 @@
 node_modules
 *.tsbuildinfo
 .env*
+out
+.sites-build
+.openai
 .DS_Store

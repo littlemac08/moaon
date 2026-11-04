@@ -7,12 +7,19 @@
     "dev": "next dev --hostname 0.0.0.0",
     "build": "next build",
     "start": "next start --hostname 0.0.0.0",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "predev": "node scripts/prepare-browser-assets.mjs",
+    "prebuild": "node scripts/prepare-browser-assets.mjs",
+    "build:sites": "node scripts/build-sites.mjs",
+    "check:browser": "node scripts/check-browser-export.mjs",
+    "check:sites": "node scripts/check-sites.mjs"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@ffmpeg/core": "^0.12.10",
+    "@ffmpeg/ffmpeg": "^0.12.15",
     "ffmpeg-static": "^5.3.0",
     "ffprobe-static": "^3.1.0",
     "lucide-react": "^1.61.0",

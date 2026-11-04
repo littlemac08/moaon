@@ -1,0 +1,31 @@
+name: Browser and static checks
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: node scripts/check-weekly.mjs
+      - run: npm run check:browser
+      - run: npm run build:sites
+      - run: npm run check:sites

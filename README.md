@@ -8,24 +8,20 @@
 - `main`: 운영 반영용 브랜치입니다. `develop`에서 검증한 변경 사항을 PR로 병합해 반영합니다.
 - 기능 작업은 필요에 따라 `develop`에서 별도 브랜치를 만들고, 검증 후 `develop`으로 병합합니다.
 
-## 실행
-
-현재 PC에서는 의존성 설치를 완료했습니다.
+## 실행 및 최신 소스 반영
 
 ```bash
-cd /Users/mac/project/PERSONAL/moaon
+git switch main
+git pull --ff-only origin main
+npm ci
 npm run dev
 ```
 
-브라우저에서 http://localhost:3000 접속. macOS에서는 `실행.command`를 더블클릭해도 됩니다. 이미 서버가 실행 중이면 새로 시작하지 않고 해당 주소로 접속하세요.
+Node.js 22 이상을 권장합니다. 브라우저에서 http://localhost:3000 에 접속합니다. `predev`와 `prebuild`는 설치된 FFmpeg 패키지에서 브라우저 도구 파일을 준비합니다. 영상은 이 브라우저에서 처리하며 서버에 업로드하지 않습니다.
 
-다른 PC: Node.js 20 이상을 설치한 뒤 `npm ci`, `npm run dev` 순서로 실행합니다. FFmpeg/FFprobe 실행 파일은 npm 의존성으로 설치됩니다. 설치 시 인터넷 연결이 필요합니다.
+정적 배포: `npm run build:sites` 후 `out/`를 제공합니다. Node 서버: `npm run build` 후 `npm start`. Docker: `docker compose up -d --build` (기본 127.0.0.1:3000). 모두 UI의 영상 처리는 브라우저가 기본입니다. 기존 `/api/export`는 Node 빌드에만 보존합니다.
 
-같은 Wi-Fi의 휴대폰에서는 `http://PC의-로컬-IP:3000`으로 접속합니다. PC 방화벽에서 허용되어 있어야 합니다. 각 브라우저의 기록은 별도로 저장됩니다.
-
-## Docker 임시 실행
-
-Docker와 Compose가 설치된 환경에서 `docker compose up -d --build`를 실행합니다. 기본 주소는 실행한 컴퓨터의 `http://127.0.0.1:3100`이며, `MOAON_PORT`로 포트를 변경할 수 있습니다. 종료는 이 프로젝트 폴더에서 `docker compose down`을 실행합니다. 원격 서버에서 실행할 경우 SSH 터널 등 안전한 접속 경로가 필요합니다. 인증이 없는 데모이므로 인터넷에 직접 공개하지 않습니다.
+현재 Sites 데모는 [같은 공개 주소](https://moaon-routine-demo.wkdaudfo4.chatgpt.site)를 유지합니다. GitHub main 업데이트와 Sites 배포는 별도 단계이며 자동 동기화가 아닙니다. [소스 동기화·검증·배포 절차](docs/sites-maintenance.md)를 따릅니다. DB·루틴 API는 [향후 계획](docs/database-api-plan.md)만 있으며 현재 연결하지 않습니다.
 
 ## 기능
 
@@ -45,9 +41,11 @@ Docker와 Compose가 설치된 환경에서 `docker compose up -d --build`를 �
 
 루틴·기록·진행 중 타이머는 `localStorage`의 `morrow-v1` 키에 저장됩니다. 로그인·클라우드 동기화 없이 사용하는 단일 사용자 데모입니다. 브라우저 데이터 삭제 시 기록도 삭제됩니다. 기존 목표 시간 숫자는 그대로 주간 목표로 적용합니다. 기본으로 제안하는 루틴 3개가 있으며 기록은 처음에 비어 있습니다.
 
-영상은 선택 시 브라우저에만 보관하고, 내보내기 버튼을 누르면 로컬 Next.js 서버로 전송됩니다. 서버는 OS 임시 폴더에 무작위 작업 디렉터리를 만들고, 변환 성공·실패 후 `finally`에서 입력·중간·결과 파일을 제거합니다. 응답용 MP4는 메모리로 전달합니다. 다운로드 후 브라우저의 컷 목록과 원본 URL도 해제합니다. 사용자가 다운로드한 MP4는 다운로드 폴더에 남습니다. OS 강제 종료·프로세스 강제 종료 시에는 `finally`가 실행되지 않을 수 있습니다.
+영상은 선택·편집·내보내기 모두 브라우저 메모리에서 처리합니다. FFmpeg WebAssembly 도구만 같은 사이트에서 내려받으며 영상은 업로드하지 않습니다. 작업 완료·실패 시 FFmpeg Worker를 종료하고 임시 변환 메모리와 도구 Blob URL을 해제합니다. 편집 컷은 다시 내보내기할 수 있도록 현재 화면에 유지됩니다. 다운로드한 MP4는 사용자의 다운로드 폴더에 남습니다.
 
-MP4/MOV 권장. 브라우저가 원본 메타데이터를 읽을 수 있어야 편집 가능하며, 일부 HEVC 등 코덱은 브라우저에 따라 지원되지 않습니다. 파일당 변환 제한은 120초이며 동시에 한 내보내기만 처리합니다. 현재는 로컬 실행용이며 인터넷 공개 서비스에는 인증, 요청 스트리밍/용량 제한, 작업 큐, 강제 종료 후 임시 파일 정리가 추가로 필요합니다.
+MP4/MOV 권장. 원본을 재생할 수 있는 코덱은 브라우저에 따라 다릅니다. 특히 긴 영상이나 큰 파일은 휴대폰의 메모리·발열·브라우저 제한에 영향을 받습니다. 변환 중 화면을 열어두세요. 홈 화면 추가용 manifest와 아이콘을 제공하며 오프라인 동작은 보장하지 않습니다.
+
+기존 Node 영상 API는 자체 서버 이행을 위한 별도 경로로 보존합니다. UI에서는 사용하지 않습니다. 인터넷에 API를 공개하기 전에 인증, 요청·용량 제한, 작업 큐와 강제 종료 후 정리가 필요합니다.
 
 폰트는 시스템 폰트와 Noto Sans KR를 사용합니다. Google Fonts 연결이 안 되어도 시스템 폰트로 동작합니다.
 
@@ -55,6 +53,9 @@ MP4/MOV 권장. 브라우저가 원본 메타데이터를 읽을 수 있어야 �
 
 ```bash
 npm run typecheck
+npm run check:browser
+npm run build:sites
+npm run check:sites
 npm run build
 npm audit
 # dev/start 서버 실행 후:
@@ -67,7 +68,9 @@ node scripts/check-export.mjs
 
 - `app/page.tsx`: 루틴·타이머·히스토리·영상 편집 React UI
 - `app/globals.css`: 데스크톱/모바일 반응형 디자인
-- `app/api/export/route.ts`: 영상 검증·정규화·연결·MP4 응답·임시 파일 삭제
+- `lib/browser-export.ts`: 현재 UI의 브라우저 영상 변환
+- `app/api/export/route.ts`: 보존한 Node 전용 영상 변환 API
+- `scripts/build-sites.mjs`: 원본 API를 보존하는 정적 빌드
 
 ## 브랜드 콘셉트
 

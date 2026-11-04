@@ -421,36 +421,14 @@ export default function Home() {
   async function exportVideo() {
     setBusy(true);
     try {
-      const data = new FormData();
-      clips.forEach((c) => data.append("files", c.file));
-      data.append(
-        "cuts",
-        JSON.stringify(clips.map((c) => ({ start: c.start, end: c.end }))),
-      );
-      data.append("design", JSON.stringify(filmStats));
-      const response = await fetch("/api/export", {
-        method: "POST",
-        body: data,
-      });
-      if (!response.ok) throw new Error((await response.json()).error);
-      const blob = await response.blob();
+      const { renderVideo } = await import("../lib/browser-export");
+      const blob = await renderVideo(clips, filmStats);
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `moaon-${dateKey()}.mp4`;
-      a.click();
+      const a = document.createElement("a"); a.href = url; a.download = `moaon-${dateKey()}.mp4`; a.click();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
-      clips.forEach((c) => URL.revokeObjectURL(c.url));
-      setClips([]);
-      setPreview(null);
-      setToast("나의 활약 영상, 완성! 다운로드를 시작했어요.");
-    } catch (e) {
-      setToast(
-        (e as Error).message || "내보내기에 실패했어요. 다시 시도해주세요.",
-      );
-    } finally {
-      setBusy(false);
-    }
+      setToast("영상이 완성됐어요. 다운로드를 확인해주세요.");
+    } catch (e) { setToast((e as Error).message || "영상 변환에 실패했어요."); }
+    finally { setBusy(false); }
   }
   const nav = [
     { id: "today", label: "오늘", icon: LayoutGrid },
@@ -1367,7 +1345,7 @@ export default function Home() {
                     오디오<strong>원본 소리 유지</strong>
                   </span>
                   <span>
-                    영상 보관<strong>변환 후 자동 삭제</strong>
+                    영상 보관<strong>기기에서만 처리</strong>
                   </span>
                 </div>
                 <button
@@ -1390,9 +1368,7 @@ export default function Home() {
                 </button>
                 <p className="privacy-note">
                   <Leaf size={15} />
-                  영상은 이 PC에서만 처리해요.
-                  <br />
-                  내보내기가 끝나면 임시 파일을 삭제해요.
+                  영상은 이 기기에서 처리되며 서버로 전송되지 않아요. 변환하는 동안 이 화면을 열어두세요.
                 </p>
               </aside>
             </div>

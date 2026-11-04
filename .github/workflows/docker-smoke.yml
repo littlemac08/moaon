@@ -2,7 +2,7 @@ name: Docker smoke test
 
 on:
   push:
-    branches: [develop]
+    branches: [develop, main]
     paths:
       - Dockerfile
       - compose.yaml
@@ -14,7 +14,7 @@ on:
       - next.config.mjs
       - tsconfig.json
       - next-env.d.ts
-      - scripts/check-export.mjs
+      - 'scripts/**'
       - .github/workflows/docker-smoke.yml
   workflow_dispatch:
 
@@ -27,7 +27,6 @@ concurrency:
 
 jobs:
   docker-smoke:
-    if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -90,3 +89,4 @@ jobs:
       - name: Remove test containers
         if: always()
         run: docker compose down --volumes --remove-orphans
+
