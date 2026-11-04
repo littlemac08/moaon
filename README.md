@@ -2,12 +2,18 @@
 
 모바일 중심 루틴 관리 로컬 데모. React 19 + Next.js 15 App Router + TypeScript.
 
+## 개발 브랜치 운영
+
+- `develop`: 개발과 테스트를 진행하는 브랜치입니다. 변경 사항은 이 브랜치에서 검증합니다.
+- `main`: 운영 반영용 브랜치입니다. `develop`에서 검증한 변경 사항을 PR로 병합해 반영합니다.
+- 기능 작업은 필요에 따라 `develop`에서 별도 브랜치를 만들고, 검증 후 `develop`으로 병합합니다.
+
 ## 실행
 
 현재 PC에서는 의존성 설치를 완료했습니다.
 
 ```bash
-cd /Users/mac/Documents/Codex/2026-10-22/new-chat/outputs/morrow
+cd /Users/mac/project/PERSONAL/moaon
 npm run dev
 ```
 
