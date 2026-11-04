@@ -1,0 +1,92 @@
+name: Docker smoke test
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - Dockerfile
+      - compose.yaml
+      - .dockerignore
+      - 'app/**'
+      - 'lib/**'
+      - 'public/**'
+      - 'package*.json'
+      - next.config.mjs
+      - tsconfig.json
+      - next-env.d.ts
+      - scripts/check-export.mjs
+      - .github/workflows/docker-smoke.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docker-smoke:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TEST_URL: http://127.0.0.1:3100
+      MOAON_PORT: '3100'
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install export test dependencies
+        run: npm ci
+      - name: Build and start Docker image
+        run: |
+          docker compose config --quiet
+          docker compose build
+          docker compose up -d
+      - name: Check runtime, export, cleanup, and restart
+        shell: bash
+        run: |
+          set -euo pipefail
+          wait_for_home() {
+            for attempt in {1..60}; do
+              if curl --fail --silent --show-error --max-time 5 "$TEST_URL/" -o "$RUNNER_TEMP/moaon-home.html"; then
+                grep -q '모아온' "$RUNNER_TEMP/moaon-home.html"
+                return 0
+              fi
+              sleep 2
+            done
+            return 1
+          }
+          check_container_tmp() {
+            docker compose exec -T moaon node -e '
+              const fs = require("node:fs");
+              const assert = require("node:assert/strict");
+              assert.deepEqual(fs.readdirSync("/tmp").filter(name => name.startsWith("morrow-")), [], "Export files remain in container /tmp");
+            '
+          }
+          wait_for_home
+          test "$(docker compose exec -T moaon id -un)" = node
+          container=$(docker compose ps -q moaon)
+          test "$(docker inspect --format '{{.HostConfig.RestartPolicy.Name}}' "$container")" = unless-stopped
+          test "$(docker compose port moaon 3000)" = 127.0.0.1:3100
+          check_container_tmp
+          node scripts/check-export.mjs
+          check_container_tmp
+          started_before=$(docker inspect --format '{{.State.StartedAt}}' "$container")
+          docker compose restart moaon
+          wait_for_home
+          test "$(docker compose ps -q moaon)" = "$container"
+          test "$(docker inspect --format '{{.State.StartedAt}}' "$container")" != "$started_before"
+          node scripts/check-export.mjs
+          check_container_tmp
+      - name: Show container logs
+        if: always()
+        run: docker compose logs --no-color --tail=200
+      - name: Remove test containers
+        if: always()
+        run: docker compose down --volumes --remove-orphans
