@@ -69,7 +69,7 @@ export async function POST(request: Request) {
       );
     dir = await mkdtemp(join(tmpdir(), "morrow-"));
     const ffmpeg = require("ffmpeg-static") as string;
-    const ffprobe = require("ffprobe-static").path as string;
+    const ffprobe = process.env.FFPROBE_PATH || (require("ffprobe-static").path as string);
     for (let i = 0; i < files.length; i++) {
       const input = join(dir, `input-${i}`);
       await writeFile(input, Buffer.from(await files[i].arrayBuffer()));

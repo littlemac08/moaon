@@ -1,0 +1,7 @@
+services:
+  moaon:
+    build: .
+    image: moaon:local
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${MOAON_PORT:-3100}:3000"
