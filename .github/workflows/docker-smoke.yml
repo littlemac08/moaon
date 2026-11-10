@@ -89,4 +89,3 @@ jobs:
       - name: Remove test containers
         if: always()
         run: docker compose down --volumes --remove-orphans
-

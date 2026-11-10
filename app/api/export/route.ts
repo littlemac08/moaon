@@ -163,7 +163,7 @@ export async function POST(request: Request) {
           "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100",
           "-t", String(duration),
           "-filter_complex",
-          `[0:v]eq=saturation=${design.theme === "night" ? 0.18 : 0.82}:contrast=1.04:brightness=-0.015,setsar=1[film];[film][1:v]overlay=0:0:shortest=1[v]`,
+          `[0:v]setsar=1[film];[film][1:v]overlay=0:0:shortest=1[v]`,
           "-map", "[v]", "-map", "2:a:0",
           "-c:v",
           "libx264",

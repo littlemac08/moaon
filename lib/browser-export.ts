@@ -53,7 +53,7 @@ export async function renderVideo(clips: Clip[], design: any) {
           await ff.writeFile(`${kind}-${String(frame).padStart(3,'0')}.png`,new Uint8Array(await blob.arrayBuffer()));
         } finally { URL.revokeObjectURL(url); }
       }
-      await run(['-y','-stream_loop','-1','-i',`cut-${kind==='intro'?0:clips.length-1}.mp4`,'-framerate','10','-i',`${kind}-%03d.png`,'-f','lavfi','-i','anullsrc=channel_layout=stereo:sample_rate=44100','-t',String(duration),'-filter_complex',`[0:v]eq=saturation=${design.theme==='night'?0.18:0.82}:contrast=1.04:brightness=-0.015,setsar=1[film];[film][1:v]overlay=0:0:shortest=1[v]`,'-map','[v]','-map','2:a:0','-r','30','-c:v','libx264','-preset','ultrafast','-crf','23','-pix_fmt','yuv420p','-c:a','aac','-ar','44100','-ac','2','-video_track_timescale','90000',`${kind}.mp4`]);
+      await run(['-y','-stream_loop','-1','-i',`cut-${kind==='intro'?0:clips.length-1}.mp4`,'-framerate','10','-i',`${kind}-%03d.png`,'-f','lavfi','-i','anullsrc=channel_layout=stereo:sample_rate=44100','-t',String(duration),'-filter_complex',`[0:v]setsar=1[film];[film][1:v]overlay=0:0:shortest=1[v]`,'-map','[v]','-map','2:a:0','-r','30','-c:v','libx264','-preset','ultrafast','-crf','23','-pix_fmt','yuv420p','-c:a','aac','-ar','44100','-ac','2','-video_track_timescale','90000',`${kind}.mp4`]);
       for(let frame=0;frame<duration*10;frame++) await ff.deleteFile(`${kind}-${String(frame).padStart(3,'0')}.png`);
     }
     await ff.writeFile('list.txt',new TextEncoder().encode(["file 'intro.mp4'",...clips.map((_,i)=>`file 'cut-${i}.mp4'`),"file 'outro.mp4'"].join('\n')));

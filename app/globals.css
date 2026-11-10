@@ -4126,3 +4126,1092 @@ a:focus-visible {
 .design-stage { width:min(100%,300px); aspect-ratio:9/16; margin:20px auto 0; padding:0; border-radius:8px; }
 .design-stage .motion-overlay { max-width:100%; width:100%; height:100%; border-radius:0; box-shadow:none; }
 .design-stage .scene-badge { bottom:12px; right:12px; }
+
+/* Preserve the original visual identity while keeping daily controls readable. */
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 3px solid #bd7758;
+  outline-offset: 3px;
+}
+.duck-hero p { font-size: 12px; line-height: 1.65; }
+.summary-card p, .summary-chips > span { font-size: 11px; color: #795e50; }
+.routine-info h3 { font-size: 14px; }
+.routine-info > span, .mission-select-hint { font-size: 11px; color: #756257; }
+.text-button, .manual-button { min-height: 44px; font-size: 12px; }
+.focus-start, .save-timer { min-height: 48px; font-size: 13px; }
+@media (max-width: 760px) {
+  .duck-hero p { font-size: 11px; line-height: 1.6; }
+  .summary-card p { font-size: 11px; }
+  .summary-chips > span { font-size: 10px; }
+  .routine-info h3 { font-size: 14px; }
+  .mobile-nav span { font-size: 10px; }
+}
+
+/* On the daily screen, each mobile scroll settles on the next full-height section. */
+@media (max-width: 760px) {
+  html:has(.dashboard):not(:has(dialog[open])) {
+    scroll-snap-type: y mandatory;
+    scroll-padding-top: 0;
+  }
+  .topbar, .routine-section, .focus-card, .moment-promo {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+  .routine-section {
+    min-height: calc(100svh - 80px);
+    padding-top: 25px;
+    margin-top: 0;
+    scroll-margin-top: 0;
+  }
+  .focus-card {
+    min-height: calc(100svh - 90px);
+    scroll-margin-top: 10px;
+  }
+  .moment-promo { scroll-margin-top: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:has(.dashboard) { scroll-snap-type: none; }
+}
+
+/* The greeting becomes a compact companion while the daily pages move underneath. */
+.compact-today-header { display: none; }
+@media (max-width: 760px) {
+  .compact-today-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 25;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    background: #6f2926;
+    color: #fcf3e7;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -.5px;
+    opacity: 0;
+    transform: translateY(-100%);
+    visibility: hidden;
+    transition: transform .3s ease, opacity .3s ease, visibility 0s linear .3s;
+    pointer-events: none;
+  }
+  .compact-today-header.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+    transition-delay: 0s;
+  }
+  .compact-today-header img { width: 33px; height: 33px; }
+  .compact-header-dot { color: #eab1a2; }
+  .routine-section { padding-top: 78px; }
+  .focus-card { scroll-margin-top: 68px; min-height: calc(100svh - 150px); }
+  .moment-promo { scroll-margin-top: 70px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .compact-today-header { transition: none; }
+}
+
+/* A compact week selector and a clearer weekly-progress reading. */
+.week-strip {
+  background: #fcfaf7;
+  border: 1px solid #eaded4;
+  border-radius: 14px;
+  gap: 20px;
+}
+.week-label > span { color: #4f3831; font-size: 13px; font-weight: 700; letter-spacing: -.2px; }
+.week-label small { color: #856e62; font-size: 11px; letter-spacing: -.2px; }
+.week-days { gap: 4px; }
+.day { min-height: 60px; border-radius: 10px; gap: 4px; transition: background .2s, color .2s; }
+.day > span { color: #806e65; font-size: 10px; }
+.day strong { color: #4a3b35; font-size: 15px; font-variant-numeric: tabular-nums; }
+.day i { width: 5px; height: 5px; background: transparent; }
+.day i.filled { background: #b64436; }
+.day.selected { background: #f1ded4; }
+.day.selected > span, .day.selected strong { color: #923f33; }
+.day:disabled { opacity: .48; }
+.week-end { color: #795e50; }
+.summary-card {
+  position: relative;
+  overflow: hidden;
+  background: #f2e7de;
+  border: 1px solid #e7d6c9;
+  border-radius: 14px;
+  gap: 16px;
+}
+.summary-copy { min-width: 0; }
+.summary-card .eyebrow { display: block; color: #87695b; font-size: 10px; letter-spacing: .04em; font-weight: 600; }
+.summary-card h2 { margin: 10px 0 12px; color: #513b32; font-size: 17px; font-weight: 700; }
+.big-number { color: #762f2a; font-weight: 650; font-variant-numeric: tabular-nums; }
+.big-number > span { font-size: 15px; margin: 0 5px; }
+.big-number > small { color: #806b5e; font-size: 12px; }
+.summary-card .summary-copy > p { color: #806a5d; font-size: 11px; line-height: 1.55; word-break: keep-all; }
+.summary-chips { gap: 8px 14px; flex-wrap: wrap; margin-top: 18px; }
+.summary-chips > span { color: #755d50; font-size: 10px; }
+.progress-ring { width: 120px; height: 120px; padding: 7px; background: conic-gradient(#b64436 var(--progress), #decdc0 0); transform: none; }
+.progress-ring > div { background: #f2e7de; transform: none; }
+.progress-ring span { color: #763c32; font-weight: 650; font-variant-numeric: tabular-nums; }
+.progress-ring p { color: #80685b; }
+@media (max-width: 760px) {
+  .week-strip { padding: 16px 15px 12px; margin-bottom: 16px; }
+  .week-label { padding: 0 2px 10px; gap: 8px; }
+  .week-label > span { font-size: 13px; }
+  .week-label small { font-size: 10px; }
+  .week-days { gap: 3px; }
+  .day { min-height: 58px; padding: 7px 0; }
+  .day strong { font-size: 15px; }
+  .summary-card { min-height: 190px; padding: 20px; }
+  .summary-card h2 { font-size: 16px; }
+  .big-number { font-size: 40px; }
+  .progress-ring { width: 96px; height: 96px; padding: 6px; }
+  .progress-ring span { font-size: 25px; }
+  .progress-ring p { font-size: 9px; }
+  .summary-chips { margin-top: 14px; }
+}
+@media (max-width: 350px) {
+  .week-label small { font-size: 9px; }
+  .summary-card { padding: 18px 15px; gap: 8px; }
+  .progress-ring { width: 82px; height: 82px; }
+  .summary-card .summary-copy > p { font-size: 10px; }
+}
+
+/* Give the weekly percentage the visual weight of a compact metro tile. */
+.progress-ring {
+  width: 148px;
+  height: 148px;
+  padding: 0;
+  border-radius: 12px;
+  background: #752e2a;
+}
+.progress-ring > div {
+  position: relative;
+  overflow: hidden;
+  background: transparent;
+  border-radius: inherit;
+  padding: 14px 8px;
+}
+.progress-ring > div::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: var(--progress);
+  height: 4px;
+  background: #e3a38c;
+}
+.progress-ring span {
+  color: #fff5eb;
+  font-size: 58px;
+  line-height: 1;
+  letter-spacing: -3px;
+  white-space: nowrap;
+}
+.progress-ring small { font-size: 22px; margin-left: 2px; letter-spacing: 0; }
+.progress-ring p { color: #f3d5c7; font-size: 11px; margin-top: 10px; }
+@media (max-width: 760px) {
+  .progress-ring { width: clamp(118px, 36vw, 148px); height: clamp(118px, 36vw, 148px); }
+  .progress-ring span { font-size: clamp(45px, 14vw, 58px); }
+  .progress-ring small { font-size: 19px; }
+  .progress-ring p { font-size: 10px; }
+}
+@media (max-width: 350px) {
+  .progress-ring { width: 108px; height: 108px; }
+  .progress-ring span { font-size: 42px; }
+}
+
+/* The tile fills from bottom to top as the weekly goal is reached. */
+.progress-ring { background: #4b2523; }
+.progress-ring > div { isolation: isolate; }
+.progress-ring > div::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: auto 0 0;
+  height: var(--progress);
+  background: #a64336;
+  transition: height .55s ease;
+}
+.progress-ring > div::after { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .progress-ring > div::before { transition: none; }
+}
+
+/* Palette: ink blue, cool paper and a clear periwinkle accent. */
+:root { --bg: #f3f6fa; --text: #24364d; --muted: #657992; --green: #416bb5; --line: #dce5ef; }
+body { background: #f3f6fa; color: #24364d; }
+.sidebar { background: #f9fbfd; border-color: #dce5ef; }
+.brand-dot { color: #4b76bc; }
+.brand-mark { background: #e8f0fc; color: #4b76bc; }
+.sidebar-caption, .sidebar-bottom > span, .profile small { color: #6d8098; }
+.sidebar-bottom { border-color: #dce5ef; }
+.sidebar-bottom p { color: #647891; }
+.nav-item { color: #657992; }
+.nav-item.active { background: #e7eef9; color: #325b9e; }
+.nav-dot, .local-pill > span { background: #5d80c1; }
+.profile > div { background: #e5edf7; color: #4d6b93; }
+.topbar { border-color: #dce5ef; color: #61758e; }
+.local-pill { color: #6d8098; }
+.page-heading h1 { color: #25374f; }
+.page-heading p, .eyebrow { color: #657b95; }
+.duck-hero, .compact-today-header { background: #314f78; }
+.duck-hero h1 { color: #f8fbff; }
+.duck-hero p { color: #e1ebf9; }
+.duck-hero .eyebrow, .duck-hero .date-label { color: #c8d9f0; }
+.compact-today-header { color: #f8fbff; }
+.compact-header-dot { color: #a8c6f4; }
+.week-strip { background: #fff; border-color: #dce5ef; }
+.week-label > span { color: #30435c; }
+.week-label small, .week-end { color: #657a92; }
+.day > span { color: #667b94; }
+.day strong { color: #324861; }
+.day.selected { background: #e6effc; }
+.day.selected > span, .day.selected strong { color: #355d9e; }
+.day i.filled { background: #416bb5; }
+.summary-card { background: #eaf1fa; border-color: #d9e4f1; }
+.summary-card .eyebrow, .summary-card .summary-copy > p, .summary-chips > span { color: #5b708b; }
+.summary-card h2 { color: #2d435e; }
+.big-number { color: #315b98; }
+.big-number > small { color: #617792; }
+.progress-ring { background: #273f61; }
+.progress-ring > div::before { background: #557fc0; }
+.progress-ring span { color: #fff; }
+.progress-ring p { color: #d9e7f8; }
+.section-heading h2 { color: #293b52; }
+.text-button { color: #416bb5; }
+.mission-select-hint, .routine-info > span { color: #647991; }
+.routine-list { background: #fff; border-color: #dce5ef; }
+.routine-row + .routine-row { border-color: #e7edf5; }
+.routine-list .routine-row.mission-selected { background: #edf3fc; box-shadow: inset 2px 0 #5079b8; }
+.routine-list .routine-row.mission-paused { background: #f0f3f7; box-shadow: inset 2px 0 #8a9bb1; }
+.routine-info h3 { color: #30435a; }
+.mission-status { color: #3e65a3; }
+.mission-status > span, .mission-status.is-running > span { background: #5b7fc0; }
+.green { background: #e7f1f6; color: #4d7f93; }
+.peach { background: #edf0fa; color: #707fb0; }
+.purple { background: #eeeaf7; color: #8170a5; }
+.blue { background: #e7eef8; color: #6688b4; }
+.muted, .manual-button { color: #617b98; }
+.focus-card { background: #273f61; border-color: #273f61; color: #f5f9ff; }
+.focus-top > span, .focus-mission-label, .focus-mission.paused .focus-mission-label { color: #c2d5ef; }
+.focus-top .live-dot, .focus-mission-label > span, .focus-mission.paused .focus-mission-label > span, .timer-face:before { background: #8db1e9; }
+.focus-mission, .focus-mission.paused { background: #ffffff0b; border-color: #b9d2ef35; }
+.focus-mission h2 { color: #fff; }
+.focus-mission-goal, .focus-card > p, .focus-card .focus-footnote, .timer-face small { color: #c5d7ee; }
+.timer-face, .timer-face > div { border-color: #aac4e435; }
+.timer-face span { color: #f7faff; }
+.focus-start, .primary { background: #557dc0; border-color: #668ed0; color: #fff; }
+.save-timer { background: #ffffff0b; border-color: #b9d2ef4a; color: #e5effc; }
+.moment-promo, .card, .export-panel { background: #fff; border-color: #dce5ef; }
+.duck-promo { background: #b9cbe2; }
+.promo-copy h3, .calendar-header h2, .calendar-month-bar h3, .upload-zone h2, .modal .section-heading h2 { color: #334e70; }
+.promo-copy p, .promo-copy .eyebrow, .closing-note { color: #687e98; }
+.calendar-today, .calendar-day.selected, .calendar-day.achieved { background: #e9f1fc; border-color: #b9cdec; color: #456ba5; }
+.calendar-month-bar .icon-button, .calendar-stats { background: #eff4fa; color: #5a7495; }
+.calendar-stats > span, .calendar-date, .calendar-donut > span, .calendar-weekdays > span, .calendar-help, .calendar-legend, .legend-caption { color: #6a8099; }
+.calendar-stats strong, .calendar-day.is-today .calendar-date, .calendar-day.achieved .calendar-date { color: #416bb5; }
+.donut-track { stroke: #dce6f2; }
+.donut-fill, .calendar-day.achieved .donut-fill { stroke: #557fc0; }
+.legend-ring { border-color: #557fc0; }
+.upload-zone { background: #edf3fa; border-color: #b8cbe1; }
+.upload-icon { background: #dbe8f6; color: #567ba8; }
+.upload-zone p, .upload-zone small, .privacy-note, .design-note, .export-spec > span { color: #687f9a; }
+.export-count, .export-spec strong { color: #3d6192; }
+.export-track { background: #dce7f4; }
+.export-track i { background: #557fc0; }
+.format-tag { background: #eaf1fa; border-color: #d3e0f0; color: #54769f; }
+.theme-picker button, .scene-controls button { background: #f3f7fc; border-color: #dce5ef; color: #5c7697; }
+.theme-picker button.selected, .scene-controls button.selected { background: #e5eefb; border-color: #91add6; color: #375f9d; }
+.theme-picker strong, .design-controls strong { color: #405e83; }
+.theme-picker small, .design-controls > span, .design-controls label { color: #69809b; }
+input, select { background: #f8fafc; border-color: #d6e0ed; color: #30465f; }
+input:focus, select:focus { border-color: #6087c5; box-shadow: 0 0 0 3px #6087c522; }
+.modal { background: #f9fbfe; }
+.modal label { color: #627995; }
+.minute-presets button { background: #eaf0f8; color: #657d99; }
+.minute-presets button.selected, .icon-picker button.selected { background: #dfeafa; border-color: #90add6; color: #416ba7; }
+.toast { background: #314f78; border-color: #5577a2; color: #fff; }
+.mobile-nav { background: #f9fbfef5; border-color: #dce5ef; }
+.mobile-nav button { color: #71859c; }
+.mobile-nav button.active { background: #e5eefb; color: #416bb5; }
+footer { border-color: #dce5ef; color: #8294a9; }
+footer > span:first-child { color: #5c7390; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline-color: #507bc0; }
+@media (max-width: 760px) {
+  .topbar > span:before { color: #293e59; }
+  .local-pill { color: #6d8098; }
+}
+.calendar-header .eyebrow, .calendar-weekdays > span:last-child, .calendar-weekdays > span:nth-child(6), .calendar-day-note { color: #6b809a; }
+.calendar-day.selected .donut-track { stroke: #cbdcf0; }
+.calendar-day.achieved .calendar-donut > span, .calendar-day.achieved .calendar-day-note { color: #416bb5; }
+
+/* Yuri fills up with the time gathered during the week. */
+.progress-ring {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  padding: 0;
+  background: transparent;
+  overflow: visible;
+}
+.progress-ring .progress-yuri { display: block; width: 100%; height: 100%; }
+.progress-ring .progress-yuri-fill { transition: y .55s ease, height .55s ease; }
+.progress-ring .progress-value {
+  position: absolute;
+  inset: 35% 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: auto;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  transform: none;
+}
+.progress-ring .progress-value::before, .progress-ring .progress-value::after { display: none; }
+.progress-ring .progress-value span { color: #223e63; font-size: 40px; line-height: 1; letter-spacing: -2px; }
+.progress-ring .progress-value small { font-size: 15px; }
+.progress-ring .progress-value p { color: #365777; font-size: 10px; margin-top: 6px; }
+@media (max-width: 760px) {
+  .progress-ring { width: clamp(116px, 36vw, 150px); height: clamp(116px, 36vw, 150px); }
+  .progress-ring .progress-value span { font-size: clamp(31px, 10vw, 40px); }
+  .progress-ring .progress-value small { font-size: 14px; }
+  .progress-ring .progress-value p { font-size: 9px; }
+}
+@media (max-width: 350px) {
+  .progress-ring { width: 108px; height: 108px; }
+  .progress-ring .progress-value span { font-size: 30px; }
+}
+@media (prefers-reduced-motion: reduce) { .progress-ring .progress-yuri-fill { transition: none; } }
+.progress-ring .progress-value.is-full span { font-size: 32px; }
+@media (max-width: 760px) { .progress-ring .progress-value.is-full span { font-size: 29px; } }
+@media (max-width: 350px) { .progress-ring .progress-value.is-full span { font-size: 25px; } }
+
+/* Keep Yuri's face clear and put the value underneath the illustration. */
+.progress-ring { height: auto; display: flex; flex-direction: column; align-items: center; }
+.progress-ring .progress-yuri { width: 100%; height: auto; }
+.progress-ring .progress-value { position: static; inset: auto; margin-top: -5px; }
+.progress-ring .progress-value span { font-size: 34px; }
+.progress-ring .progress-value p { margin-top: 2px; }
+@media (max-width: 760px) {
+  .progress-ring { height: auto; }
+  .progress-ring .progress-value span { font-size: 31px; }
+  .progress-ring .progress-value.is-full span { font-size: 31px; }
+}
+@media (max-width: 350px) {
+  .progress-ring { height: auto; }
+  .progress-ring .progress-value span, .progress-ring .progress-value.is-full span { font-size: 28px; }
+}
+
+/* The waterline moves with progress; at zero a shallow ripple remains visible. */
+.yuri-water-level { transform: translateY(var(--wave-y)); transition: transform 900ms ease-in-out; }
+.yuri-wave { animation: yuri-ripple 5s linear infinite; }
+.yuri-wave-back { fill: #adcbea; opacity: .8; animation-duration: 7s; animation-direction: reverse; }
+.yuri-wave-front { fill: #91b9e4; }
+@keyframes yuri-ripple { from { transform: translateX(0); } to { transform: translateX(-100px); } }
+@media (prefers-reduced-motion: reduce) {
+  .yuri-water-level { transition: none; }
+  .yuri-wave { animation: none; }
+}
+
+/* A small Yuri marks an actual entry; the ring still shows cumulative weekly progress. */
+.day-record-mark { display: grid; place-items: center; height: 13px; color: #446fa8; }
+.day-record-mark svg, .calendar-record-mark, .legend-record svg { display: block; color: #456fa9; flex: none; }
+.calendar-card { background: #fff; border: 1px solid #dce5ef; border-radius: 16px; }
+.calendar-header h2 { color: #293e59; font-weight: 700; }
+.calendar-header .eyebrow { color: #6b809a; letter-spacing: .06em; font-size: 10px; }
+.calendar-month-bar { margin: 26px 0 20px; gap: 16px; }
+.calendar-month-bar h3 { color: #293e59; font-weight: 700; font-variant-numeric: tabular-nums; }
+.calendar-month-bar .icon-button, .calendar-today { min-width: 40px; min-height: 40px; border-radius: 10px; }
+.calendar-stats { background: #f1f5fa; border-radius: 10px; padding: 15px 12px; }
+.calendar-stats > span { color: #647b96; }
+.calendar-stats strong { color: #355d96; }
+.calendar-weekdays { border-bottom: 1px solid #edf1f6; padding-bottom: 5px; }
+.calendar-weekdays > span { font-weight: 600; color: #71839a; }
+.calendar-grid { gap: 5px; }
+.calendar-day { border-radius: 10px; gap: 6px; padding: 9px 2px 6px; }
+.calendar-day.selected { background: #e9f1fc; border: 1px solid #a9c4e8; }
+.calendar-day.achieved:not(.selected) { background: #f3f7fc; }
+.calendar-date-row { position: relative; min-height: 16px; display: flex; align-items: center; justify-content: center; gap: 2px; }
+.calendar-date { color: #455d78; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.calendar-record-mark { width: 14px; height: 14px; }
+.calendar-donut > span { color: #4f6e95; }
+.calendar-legend { flex-wrap: wrap; color: #617891; gap: 7px; }
+.legend-record { display: inline-flex; align-items: center; gap: 3px; color: #617891; margin-left: 10px; }
+.calendar-help { color: #667d97; font-size: 10px; line-height: 1.65; }
+@media (max-width: 760px) {
+  .calendar-card { padding: 20px 12px 18px; }
+  .calendar-header h2 { font-size: 17px; }
+  .calendar-month-bar { margin: 20px 0 16px; }
+  .calendar-stats { gap: 8px; justify-content: space-around; padding: 12px 4px; }
+  .calendar-stats > span { font-size: 10px; }
+  .calendar-grid, .calendar-weekdays { gap: 2px; }
+  .calendar-day { gap: 5px; padding: 8px 0 5px; }
+  .calendar-date { font-size: 11px; }
+  .calendar-record-mark { width: 12px; height: 12px; }
+  .calendar-donut > span { font-size: 10px; }
+  .calendar-legend { font-size: 10px; gap: 5px; }
+  .legend-record { margin-left: 5px; }
+  .calendar-help { font-size: 10px; }
+}
+@media (max-width: 350px) {
+  .calendar-date-row { gap: 0; }
+  .calendar-record-mark { width: 11px; height: 11px; }
+  .calendar-stats > span { font-size: 9px; }
+}
+
+/* A week at a glance: dates stay easy to tap, Yuri marks recorded days. */
+.week-strip { gap: 18px; padding: 16px 20px; }
+.week-label { min-width: 142px; }
+.week-heading-copy > span { display: block; color: #30435c; font-size: 13px; font-weight: 700; }
+.week-heading-copy > small { display: block; margin-top: 4px; color: #71849a; font-size: 11px; font-variant-numeric: tabular-nums; }
+.week-record-count { display: none; }
+.week-days { align-items: stretch; gap: 4px; }
+.day { min-width: 0; min-height: 68px; padding: 8px 0 5px; gap: 3px; border-radius: 12px; }
+.day > span:first-child { color: #73869d; font-size: 10px; line-height: 1.2; }
+.day strong { color: #354b65; font-size: 16px; line-height: 1.25; font-weight: 700; }
+.day.selected { background: #dfeafb; box-shadow: inset 0 0 0 1px #b8cdeb; }
+.day.selected > span:first-child, .day.selected strong { color: #365f9e; }
+.day.is-today:not(.selected) strong { text-decoration: underline; text-decoration-color: #7c9dcc; text-underline-offset: 4px; }
+.day-record-mark { height: 14px; min-height: 14px; color: #456fa9; }
+.week-end { color: #607a98; font-size: 11px; }
+@media (max-width: 760px) {
+  .week-strip { padding: 16px 14px 13px; }
+  .week-label { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 0 2px 12px; }
+  .week-heading-copy { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+  .week-heading-copy > span { font-size: 13px; white-space: nowrap; }
+  .week-heading-copy > small { margin: 0; font-size: 10px; white-space: nowrap; }
+  .week-record-count { display: inline-flex; align-items: center; gap: 3px; color: #6b829c; font-size: 10px; white-space: nowrap; }
+  .week-record-count svg { color: #6084b4; flex: none; }
+  .week-days { gap: 3px; }
+  .day { width: calc(100% / 7); min-height: 69px; }
+}
+@media (max-width: 350px) {
+  .week-strip { padding-left: 10px; padding-right: 10px; }
+  .week-heading-copy { gap: 5px; }
+  .week-heading-copy > span { font-size: 12px; }
+  .week-heading-copy > small, .week-record-count { font-size: 9px; }
+}
+
+/* Compact weekly calendar; keep each recorded day visible. */
+@media (max-width: 760px) {
+  .week-strip { padding: 11px 13px 9px; margin-bottom: 12px; }
+  .week-label { padding-bottom: 7px; }
+  .week-days { gap: 3px; }
+  .day { min-height: 54px; padding: 4px 0 2px; gap: 1px; border-radius: 9px; }
+  .day > span:first-child { font-size: 10px; }
+  .day strong { font-size: 15px; line-height: 1.2; }
+  .day-record-mark { height: 12px; min-height: 12px; }
+  .day-record-mark svg { width: 12px; height: 12px; }
+}
+
+/* Keep only the seven dates and their record marks in the weekly strip. */
+.week-strip { padding: 10px 16px; }
+@media (max-width: 760px) {
+  .week-strip { padding: 8px 12px; }
+}
+
+/* Recorded dates sit inside Yuri; selection fills the same silhouette. */
+.day .day-number { position: relative; display: grid; place-items: center; width: 44px; height: 40px; flex: none; }
+.day .day-number strong { position: relative; z-index: 1; text-decoration: none; }
+.day-ghost { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.day-ghost path { fill: #f7faff; stroke: #648bc0; stroke-width: 3; stroke-linejoin: round; }
+.day.has-record.selected { background: transparent; box-shadow: none; }
+.day.has-record.selected .day-ghost path { fill: #dfeafb; stroke: #8aadd9; }
+@media (max-width: 760px) {
+  .day { min-height: 56px; padding: 3px 0; gap: 0; }
+  .day .day-number { width: min(44px, 100%); height: 38px; }
+}
+
+/* A light hint that the daily view continues to another screen. */
+.scroll-tip { display: none; }
+@media (max-width: 760px) {
+  .scroll-tip {
+    position: fixed;
+    z-index: 19;
+    left: 50%;
+    bottom: calc(82px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 10px 4px 12px;
+    border: 1px solid #d9e4f1;
+    border-radius: 999px;
+    background: #f9fbfeeb;
+    color: #587493;
+    font-size: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translate(-50%, 5px);
+    transition: opacity .25s ease, transform .25s ease;
+    pointer-events: none;
+  }
+  .scroll-tip.is-visible { opacity: 1; transform: translate(-50%, 0); }
+  .scroll-tip svg { animation: scroll-tip-nudge 1.8s ease-in-out infinite; }
+}
+@keyframes scroll-tip-nudge {
+  0%, 100% { transform: translateY(-2px); }
+  50% { transform: translateY(3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scroll-tip, .scroll-tip svg { transition: none; animation: none; }
+}
+
+/* The scroll cue sits directly on the page instead of looking like a button. */
+@media (max-width: 760px) {
+  .scroll-tip {
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    padding: 2px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #8da5c2;
+  }
+}
+
+@media (max-width: 760px) {
+  .scroll-tip svg { animation: scroll-tip-flow 1.5s ease-in-out infinite; }
+}
+@keyframes scroll-tip-flow {
+  0%, 100% { transform: translateY(-5px); opacity: .4; }
+  50% { transform: translateY(5px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scroll-tip svg { animation: none; }
+}
+
+/* Focus page: the selected routine, elapsed time, and action are the hierarchy. */
+.focus-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  background: #273f61;
+  border: 1px solid #385575;
+  border-radius: 18px;
+  color: #f4f8ff;
+  text-align: left;
+}
+.focus-top { color: #c4d7ee; }
+.focus-top > span { color: #c4d7ee; font-size: 11px; font-weight: 650; letter-spacing: .02em; }
+.focus-top svg { color: #d5e6fa; opacity: 1; }
+.focus-mission, .focus-mission.paused {
+  margin-top: 24px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  text-align: left;
+}
+.focus-mission-label, .focus-mission.paused .focus-mission-label { color: #b9d1ec; font-size: 11px; }
+.focus-mission h2 { margin: 7px 0 5px; color: #fff; font-size: 23px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+.focus-mission-goal { color: #c5d7eb; font-size: 12px; }
+.timer-face {
+  display: grid;
+  place-items: center;
+  width: min(220px, 70vw);
+  height: auto;
+  aspect-ratio: 1;
+  padding: 9px;
+  margin: 28px auto;
+  border: 1px solid #a8c4e849;
+  background: #ffffff05;
+}
+.timer-face:before { left: 50%; top: -3px; transform: translateX(-50%); width: 6px; height: 6px; background: #9dc3f2; }
+.timer-face > div { border: 1px solid #a8c4e825; }
+.timer-face span { color: #fff; font-size: clamp(38px, 12vw, 54px); line-height: 1; font-weight: 500; letter-spacing: -.04em; }
+.timer-face small { margin-top: 10px; color: #c0d4ec; font-size: 11px; }
+.timer-face.running { box-shadow: 0 0 0 6px #a4c5f00a; }
+.timer-actions { width: 100%; margin-top: auto; }
+.focus-start, .save-timer { min-height: 52px; border-radius: 11px; font-size: 14px; font-weight: 700; }
+.focus-start { background: #e5f0ff; border-color: #e5f0ff; color: #294d7d; }
+.save-timer { margin-top: 9px; background: #ffffff12; border-color: #c1d5ed70; color: #fff; }
+.focus-card .focus-footnote { margin-top: 13px; color: #c0d4ec; font-size: 11px; line-height: 1.5; text-align: center; word-break: keep-all; }
+@media (max-width: 760px) {
+  .focus-card { padding: 25px 24px 22px; min-height: calc(100svh - 150px); }
+  .focus-mission h2 { font-size: 22px; }
+  .timer-face { width: min(200px, 65vw); height: auto; margin: 24px auto; }
+}
+@media (max-height: 720px) and (max-width: 760px) {
+  .focus-card { min-height: calc(100svh - 150px); }
+  .focus-mission { margin-top: 16px; }
+  .timer-face { width: min(165px, 50vw); margin: 16px auto; }
+}
+.focus-mission-label { justify-content: flex-start; }
+
+/* Yuri accompanies the timer without competing with the time or controls. */
+.timer-face, .timer-face.running {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: auto;
+  aspect-ratio: auto;
+  margin: 20px auto 24px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.timer-face::before { display: none; }
+.timer-ghost { display: block; width: 150px; height: 150px; object-fit: contain; }
+.timer-face > div { width: auto; height: auto; border: 0; border-radius: 0; margin-top: 9px; }
+.timer-face span { font-size: clamp(42px, 13vw, 56px); }
+.timer-face small { margin-top: 8px; }
+.timer-face.running .timer-ghost { animation: timer-yuri-float 3s ease-in-out infinite; }
+@keyframes timer-yuri-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+@media (max-width: 760px) {
+  .timer-face, .timer-face.running { width: 100%; height: auto; margin: 18px auto 20px; }
+  .timer-ghost { width: 140px; height: 140px; }
+}
+@media (max-height: 720px) and (max-width: 760px) {
+  .timer-face, .timer-face.running { width: 100%; margin: 12px auto; }
+  .timer-ghost { width: 96px; height: 96px; }
+  .timer-face > div { margin-top: 5px; }
+}
+@media (prefers-reduced-motion: reduce) { .timer-face.running .timer-ghost { animation: none; } }
+
+/* Yuri wanders across the focus screen while the selected routine leads. */
+.focus-mission h2 { font-size: clamp(28px, 7.5vw, 36px); line-height: 1.2; letter-spacing: -.045em; }
+.timer-face .timer-ghost, .timer-face.running .timer-ghost {
+  animation: yuri-wander 12s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes yuri-wander {
+  0% { transform: translate(-58px, 1px) scaleX(1); }
+  24% { transform: translate(55px, -8px) scaleX(1); }
+  25% { transform: translate(58px, -7px) scaleX(-1); }
+  50% { transform: translate(-58px, 2px) scaleX(-1); }
+  51% { transform: translate(-58px, 2px) scaleX(1); }
+  74% { transform: translate(55px, -8px) scaleX(1); }
+  75% { transform: translate(58px, -7px) scaleX(-1); }
+  99% { transform: translate(-58px, 1px) scaleX(-1); }
+  100% { transform: translate(-58px, 1px) scaleX(1); }
+}
+@media (max-width: 350px) {
+  .focus-mission h2 { font-size: 28px; }
+  .timer-face .timer-ghost, .timer-face.running .timer-ghost { animation-name: yuri-wander-narrow; }
+}
+@keyframes yuri-wander-narrow {
+  0% { transform: translate(-38px, 1px) scaleX(1); }
+  49% { transform: translate(38px, -6px) scaleX(1); }
+  50% { transform: translate(38px, -6px) scaleX(-1); }
+  99% { transform: translate(-38px, 1px) scaleX(-1); }
+  100% { transform: translate(-38px, 1px) scaleX(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .timer-face .timer-ghost, .timer-face.running .timer-ghost { animation: none; }
+}
+.focus-card .focus-mission { margin-top: 0; }
+
+/* Yuri crosses the stage, disappears beyond its edge, and returns. */
+.focus-card .timer-stage {
+  position: relative;
+  overflow: hidden;
+  flex: 1 1 155px;
+  min-height: 155px;
+  width: calc(100% + 48px);
+  margin: 0 -24px;
+}
+.focus-card .timer-stage .timer-ghost {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140px;
+  height: 140px;
+  transform: translate(-50%, -50%);
+  animation: yuri-cross-screen 16s linear infinite;
+}
+@keyframes yuri-cross-screen {
+  0% { left: -100px; top: 58%; transform: translate(-50%, -50%) scaleX(1) rotate(-6deg); }
+  28% { left: calc(100% + 100px); top: 36%; transform: translate(-50%, -50%) scaleX(1) rotate(5deg); }
+  29% { left: calc(100% + 100px); top: 40%; transform: translate(-50%, -50%) scaleX(-1) rotate(-3deg); }
+  64% { left: -100px; top: 65%; transform: translate(-50%, -50%) scaleX(-1) rotate(6deg); }
+  65% { left: -100px; top: 55%; transform: translate(-50%, -50%) scaleX(1) rotate(-6deg); }
+  100% { left: calc(100% + 100px); top: 42%; transform: translate(-50%, -50%) scaleX(1) rotate(4deg); }
+}
+.focus-card .timer-face, .focus-card .timer-face.running { flex: none; margin: 0 auto 18px; }
+.focus-card .timer-face > div { margin: 0; }
+.focus-card .timer-face span { font-size: clamp(55px, 19vw, 76px); line-height: 1; }
+.focus-card .timer-actions { margin-top: 0; }
+@media (max-height: 720px) and (max-width: 760px) {
+  .focus-card .timer-stage { min-height: 90px; flex-basis: 90px; }
+  .focus-card .timer-stage .timer-ghost { width: 100px; height: 100px; }
+  .focus-card .timer-face, .focus-card .timer-face.running { margin-bottom: 12px; }
+  .focus-card .timer-face span { font-size: clamp(48px, 15vw, 64px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .focus-card .timer-stage .timer-ghost { animation: none; }
+}
+
+/* A large lock-screen-inspired focus view. */
+.focus-fullscreen-button { position: absolute; z-index: 2; top: 18px; right: 18px; width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid #b8d1ef55; border-radius: 12px; background: #ffffff0d; color: #dbe9fa; }
+.focus-mission { padding-right: 46px; }
+.focus-card .timer-face span { font-size: clamp(66px, 22vw, 92px); font-stretch: condensed; letter-spacing: -.06em; }
+.fullscreen-focus { position: fixed; z-index: 1000; inset: 0; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; background: #253c5d; color: #f7faff; padding: max(18px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(22px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left)); }
+.fullscreen-focus-top { display: flex; align-items: center; justify-content: space-between; color: #d4e4f8; font-size: 14px; font-weight: 700; }
+.fullscreen-close { width: 46px; height: 46px; display: grid; place-items: center; border: 1px solid #d1e2f355; border-radius: 50%; background: #ffffff10; color: #f7faff; }
+.fullscreen-focus-heading { text-align: center; margin-top: clamp(16px, 5vh, 55px); }
+.fullscreen-focus-heading > span { color: #c5d9f1; font-size: 12px; }
+.fullscreen-focus-heading h2 { margin: 6px 0 0; font-size: clamp(21px, 6vw, 30px); line-height: 1.25; overflow-wrap: anywhere; }
+.fullscreen-clock { text-align: center; margin-top: 12px; line-height: .9; }
+.fullscreen-clock span { display: block; color: #fff; font-size: clamp(70px, 24vw, 170px); font-weight: 700; letter-spacing: -.075em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fullscreen-clock span.is-long { font-size: clamp(54px, 18vw, 132px); }
+.fullscreen-yuri-stage { position: relative; overflow: hidden; flex: 1 1 100px; min-height: 90px; margin: 8px -24px; }
+.fullscreen-yuri { position: absolute; width: clamp(120px, 39vw, 210px); height: auto; left: 50%; top: 50%; transform: translate(-50%, -50%); animation: yuri-cross-screen 16s linear infinite; }
+.fullscreen-actions { display: flex; flex-direction: column; gap: 9px; width: min(100%, 440px); margin: 0 auto; }
+.fullscreen-start, .fullscreen-save { min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 13px; font-weight: 700; font-size: 14px; }
+.fullscreen-start { background: #e5f0ff; color: #294d7d; }
+.fullscreen-save { border: 1px solid #c1d5ed70; background: #ffffff12; color: #fff; }
+html:has(.fullscreen-focus) { scroll-snap-type: none !important; }
+@media (max-height: 600px) { .fullscreen-focus-heading { margin-top: 4px; } .fullscreen-clock span { font-size: clamp(55px, 15vh, 100px); } .fullscreen-yuri { width: min(24vh, 120px); } .fullscreen-actions { flex-direction: row; } .fullscreen-actions button { flex: 1; } }
+@media (prefers-reduced-motion: reduce) { .fullscreen-yuri { animation: none; } }
+.focus-card .timer-face span.timer-long { font-size: clamp(48px, 17vw, 72px); }
+.fullscreen-yuri { animation-name: fullscreen-yuri-flight; }
+@keyframes fullscreen-yuri-flight {
+  0% { left: 50%; top: 52%; transform: translate(-50%, -50%) scaleX(1) rotate(-3deg); }
+  23% { left: calc(100% + 120px); top: 38%; transform: translate(-50%, -50%) scaleX(1) rotate(5deg); }
+  24% { left: calc(100% + 120px); top: 40%; transform: translate(-50%, -50%) scaleX(-1) rotate(-3deg); }
+  65% { left: -120px; top: 63%; transform: translate(-50%, -50%) scaleX(-1) rotate(5deg); }
+  66% { left: -120px; top: 58%; transform: translate(-50%, -50%) scaleX(1) rotate(-5deg); }
+  100% { left: 50%; top: 52%; transform: translate(-50%, -50%) scaleX(1) rotate(-3deg); }
+}
+@media (prefers-reduced-motion: reduce) { .fullscreen-yuri { animation: none; } }
+
+/* Tall, light numerals, with space for their visual height. */
+.focus-card .timer-face > div { padding: 10px 0; }
+.focus-card .timer-face span,
+.fullscreen-clock span {
+  display: inline-block;
+  font-weight: 300;
+  font-stretch: condensed;
+  transform: scaleY(1.28);
+  transform-origin: center;
+}
+.fullscreen-clock { padding: 16px 0; }
+
+/* Separate, gently spaced figures and a centered separator. */
+.focus-card .timer-face .clock-display,
+.fullscreen-clock .clock-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .04em;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  font-size: clamp(62px, 20vw, 88px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.fullscreen-clock .clock-display { font-size: clamp(70px, 23vw, 160px); }
+.focus-card .timer-face .clock-display-long { font-size: clamp(45px, 16vw, 70px); }
+.fullscreen-clock .clock-display-long { font-size: clamp(48px, 18vw, 125px); }
+.focus-card .timer-face .clock-pair,
+.fullscreen-clock .clock-pair { display: flex; gap: .025em; align-items: center; font-size: inherit; line-height: 1; transform: none; letter-spacing: 0; }
+.focus-card .timer-face .clock-digit,
+.fullscreen-clock .clock-digit { display: block; color: #f9fcff; font-size: inherit; font-weight: 300; line-height: 1; letter-spacing: 0; transform: scaleY(1.28); text-shadow: 0 2px 20px #8db7e52b; }
+.focus-card .timer-face .clock-colon,
+.fullscreen-clock .clock-colon { display: flex; flex-direction: column; justify-content: center; gap: .16em; width: .15em; height: .55em; flex: none; font-size: inherit; transform: none; }
+.clock-colon i { display: block; width: .075em; height: .075em; border-radius: 50%; background: #d5e7fb; margin: 0 auto; }
+@media (max-height: 600px) { .fullscreen-clock .clock-display { font-size: clamp(52px, 15vh, 100px); } }
+
+/* Keep both minute and second groups on one line in every timer view. */
+.focus-card .timer-face .clock-display,
+.fullscreen-clock .clock-display {
+  flex-direction: row;
+  align-items: center;
+  gap: .035em;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+}
+.focus-card .timer-face .clock-digit,
+.fullscreen-clock .clock-digit {
+  color: #f8fbff;
+  font-weight: 400;
+  transform: scaleY(1.18);
+  text-shadow: none;
+}
+.focus-card .timer-face .clock-colon,
+.fullscreen-clock .clock-colon { align-items: center; width: .16em; }
+.clock-colon i { width: .075em; height: .075em; background: #dceafb; }
+
+/* Motion is generated per crossing, with the artwork clipped at the stage edge. */
+.timer-stage .yuri-roamer, .fullscreen-yuri-stage .yuri-roamer {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 140px;
+  height: 140px;
+  transform: translate(-50%, -50%);
+  will-change: transform;
+}
+.fullscreen-yuri-stage .yuri-roamer { width: clamp(120px, 39vw, 210px); height: auto; aspect-ratio: 1; }
+.yuri-roamer-art { display: block; width: 100%; height: 100%; }
+@media (max-height: 720px) and (max-width: 760px) {
+  .timer-stage .yuri-roamer { width: 100px; height: 100px; }
+}
+@media (max-height: 600px) {
+  .fullscreen-yuri-stage .yuri-roamer { width: min(24vh, 120px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .timer-stage .yuri-roamer, .fullscreen-yuri-stage .yuri-roamer { will-change: auto; }
+}
+
+/* A quiet night sky frames Yuri without competing with the clock. */
+.focus-card,
+.fullscreen-focus {
+  background-color: #263e61;
+  background-image:
+    radial-gradient(circle at 13% 24%, #d5e8ff91 0 1px, transparent 2px),
+    radial-gradient(circle at 83% 19%, #d5e8ff7a 0 1px, transparent 2px),
+    radial-gradient(circle at 73% 39%, #d5e8ff70 0 1px, transparent 2px),
+    radial-gradient(circle at 22% 53%, #d5e8ff80 0 1px, transparent 2px),
+    radial-gradient(circle at 91% 62%, #d5e8ff6b 0 1px, transparent 2px),
+    radial-gradient(circle at 35% 78%, #d5e8ff70 0 1px, transparent 2px),
+    radial-gradient(ellipse at 65% 68%, #456e9a45 0, transparent 48%),
+    linear-gradient(165deg, #2b476d 0%, #203655 100%);
+}
+
+/* Soft light and waterline contours give the focus space a little depth. */
+.focus-card, .fullscreen-focus { isolation: isolate; }
+.focus-atmosphere {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+.focus-card .focus-mission,
+.focus-card .timer-stage,
+.focus-card .timer-face,
+.focus-card .timer-actions,
+.focus-card .focus-footnote,
+.fullscreen-focus-top,
+.fullscreen-focus-heading,
+.fullscreen-clock,
+.fullscreen-yuri-stage,
+.fullscreen-actions { position: relative; z-index: 1; }
+
+/* A composed focus screen that also feels like a small keepsake. */
+.focus-atmosphere-orbit { display: none; }
+.fullscreen-focus .focus-atmosphere-orbit { display: block; }
+.fullscreen-focus {
+  background-image:
+    radial-gradient(ellipse at 50% 58%, #557da649, transparent 47%),
+    radial-gradient(ellipse at 10% 0%, #557da42b, transparent 40%),
+    linear-gradient(165deg, #314c70 0%, #263e60 52%, #1c304e 100%);
+}
+.fullscreen-focus::after {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border: 1px solid #d6e9ff16;
+  border-radius: 25px;
+  pointer-events: none;
+  z-index: 0;
+}
+.fullscreen-brand { display: flex; align-items: baseline; gap: 9px; letter-spacing: -.03em; }
+.fullscreen-brand small { color: #c9dbef99; font-size: 10px; font-weight: 400; letter-spacing: -.02em; }
+.fullscreen-focus-heading > span { display: inline-block; padding: 5px 11px; border: 1px solid #d1e5fa33; border-radius: 999px; background: #e5f2ff0b; font-size: 10px; letter-spacing: .04em; }
+.fullscreen-focus-heading h2 { margin-top: 10px; font-weight: 650; letter-spacing: -.04em; }
+.fullscreen-caption { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 10px; margin: 0 0 18px; color: #cfdef0a8; font-size: 10px; letter-spacing: .04em; }
+.fullscreen-caption span { width: 22px; height: 1px; background: #c5ddf66b; }
+.fullscreen-start { box-shadow: 0 8px 24px #101f352e; }
+@media (max-height: 600px) {
+  .fullscreen-caption { display: none; }
+  .fullscreen-focus-heading > span { padding: 3px 9px; }
+}
+
+/* A calmer, graphic focus canvas with the clock as its focal point. */
+.fullscreen-focus {
+  background: radial-gradient(ellipse at 72% 76%, #527aa1 0%, transparent 48%),
+              linear-gradient(155deg, #263e60 0%, #1d3251 68%, #172c49 100%);
+}
+.fullscreen-focus::after { display: none; }
+.fullscreen-focus::before {
+  content: "";
+  position: absolute;
+  width: 125%;
+  aspect-ratio: 1;
+  left: -35%;
+  top: 42%;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #abc8e015, #97b6d303 65%);
+  border: 1px solid #dceeff12;
+  pointer-events: none;
+}
+.fullscreen-focus .focus-atmosphere { display: none; }
+.fullscreen-brand { color: #f4f8ff; font-size: 16px; font-weight: 750; letter-spacing: -.06em; }
+.fullscreen-brand-dot { color: #9ec7f4; }
+.fullscreen-close { width: 42px; height: 42px; border: 0; background: #e6f2ff15; }
+.fullscreen-focus-heading { margin-top: clamp(24px, 6vh, 62px); }
+.fullscreen-focus-heading > span { padding: 0; border: 0; background: none; color: #b8cce3; font-size: 11px; font-weight: 500; letter-spacing: .02em; }
+.fullscreen-focus-heading h2 { margin-top: 8px; font-size: clamp(22px, 6.2vw, 30px); font-weight: 650; }
+.fullscreen-clock { margin-top: 18px; }
+.fullscreen-actions { padding-bottom: 2px; }
+.fullscreen-start, .fullscreen-save { border-radius: 16px; }
+.fullscreen-start { background: #edf5ff; color: #213b5c; box-shadow: none; }
+@media (max-height: 600px) { .fullscreen-focus-heading { margin-top: 4px; } }
+
+/* The record view follows the same mobile section rhythm as Today. */
+@media (max-width: 760px) {
+  html:has(.history-layout):not(:has(dialog[open])) { scroll-snap-type: y proximity; }
+  html:has(.history-layout) .topbar,
+  .history-layout > section { scroll-snap-align: start; }
+  .history-layout { gap: 24px; margin-top: 10px; }
+  .history-layout > section { scroll-margin-top: 68px; }
+  .history-layout .history-detail { min-height: calc(100svh - 150px); }
+  .history-layout .history-detail .empty { padding-top: clamp(55px, 13vh, 120px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:has(.history-layout) { scroll-snap-type: none; }
+}
+
+/* Keep a six-week month readable within the mobile calendar page. */
+@media (max-width: 760px) {
+  .history-layout .calendar-card { padding: 16px 12px 14px; }
+  .calendar-header h2 { margin-top: 5px; font-size: 15px; }
+  .calendar-month-bar { margin: 10px 0; }
+  .calendar-month-bar h3 { font-size: 17px; }
+  .calendar-stats { margin-bottom: 8px; padding: 9px 4px; }
+  .calendar-weekdays { margin-bottom: 3px; padding-bottom: 3px; }
+  .calendar-weekdays > span { padding: 3px; }
+  .calendar-grid { gap: 2px; }
+  .calendar-day { min-height: 54px; gap: 1px; padding: 2px 0; justify-content: center; }
+  .calendar-date-row { min-height: 15px; }
+  .calendar-donut { width: 27px; }
+  .calendar-donut > span { font-size: 8px; }
+  .calendar-day-note { display: none; }
+  .calendar-legend { margin-top: 7px; padding-top: 8px; }
+  .calendar-help { margin-top: 5px; font-size: 9px; line-height: 1.45; }
+}
+
+/* Recorded dates use the same Yuri silhouette as the weekly strip. */
+.calendar-day.selected, .calendar-day.achieved:not(.selected) { background: transparent; border-color: transparent; }
+.calendar-date-row { width: 32px; height: 29px; flex: none; }
+.calendar-date { position: relative; z-index: 1; }
+.calendar-date-ghost { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.calendar-day.selected:not(.has-record) .calendar-date-row { background: #dfeafb; border-radius: 50%; }
+@media (max-width: 760px) {
+  .calendar-date-row { width: 28px; height: 25px; min-height: 25px; }
+  .calendar-day { min-height: 54px; }
+}
+
+/* Dates are the calendar's only labels; Yuri holds the weekly progress. */
+.calendar-day { justify-content: center; }
+.calendar-date-row { width: 42px; height: 40px; }
+.calendar-day.selected.has-record .calendar-date-row { border-radius: 50%; background: #dfeafb; }
+.calendar-day.selected:not(.has-record) .calendar-date-row { background: #dfeafb; }
+@media (max-width: 760px) {
+  .calendar-month-bar { margin: 14px 0 12px; }
+  .calendar-weekdays { margin-bottom: 8px; }
+  .calendar-day { min-height: 58px; padding: 2px 0; }
+  .calendar-date-row { width: 42px; height: 40px; min-height: 40px; }
+  .calendar-date { font-size: 12px; }
+}
+
+/* Standalone examples never alter the user's saved records. */
+.calendar-preview { min-height: 100dvh; max-width: 520px; margin: auto; padding: 24px 18px; background: #f3f6fa; color: #293e59; }
+.calendar-preview-heading { display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
+.calendar-preview-heading a { color: #58769d; font-size: 12px; }
+.calendar-preview-intro { padding: 38px 2px 24px; }
+.calendar-preview-intro > span { font-size: 11px; color: #6985a8; }
+.calendar-preview-intro h1 { margin: 8px 0; font-size: 23px; }
+.calendar-preview-intro p { color: #71869f; font-size: 12px; }
+.calendar-preview-card { background: white; border: 1px solid #dce5ef; border-radius: 16px; padding: 20px 12px; }
+.calendar-preview-month { text-align: center; font-size: 17px; font-weight: 700; margin: 6px 0 20px; }
+.calendar-preview-grid { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 2px; }
+.calendar-preview-weekdays { border-bottom: 1px solid #edf1f6; padding-bottom: 10px; color: #71839a; text-align: center; font-size: 10px; }
+.calendar-preview-day { min-height: 58px; display: grid; place-items: center; }
+.calendar-preview-day.is-future { opacity: .35; }
+.calendar-preview-day .calendar-date-row { width: 42px; height: 40px; }
+.calendar-preview-day .preview-selected { border-radius: 50%; background: #dfeafb; }
+.calendar-preview-key { display: flex; justify-content: center; gap: 20px; padding: 22px 0; color: #71869f; font-size: 11px; }
+.calendar-preview-key b { color: #355d96; margin-right: 4px; }
+
+/* One Yuri per ISO week, with the selected week clearly marked. */
+.weekly-calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px 1px; }
+.weekly-calendar-week { display: grid; place-items: center; min-height: 51px; border: 0; background: transparent; padding: 0; }
+.weekly-calendar-week:disabled { opacity: .3; }
+.weekly-ghost { position: relative; display: grid; place-items: center; width: 44px; height: 43px; border-radius: 50%; }
+.weekly-calendar-week.selected .weekly-ghost { background: #dfeafb; }
+.weekly-ghost > span { position: relative; z-index: 1; color: #455d78; font-size: 11px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.weekly-calendar-hint { margin: 10px 0 0; text-align: center; color: #71869f; font-size: 10px; line-height: 1.5; }
+@media (max-width: 760px) {
+  .weekly-calendar-week { min-height: 49px; }
+  .weekly-ghost { width: min(42px, 100%); height: 40px; }
+  .weekly-calendar-hint { margin-top: 8px; }
+}
+
+/* Past labels recede while selection and progress remain visible. */
+.day.is-past > span:first-child, .day.is-past strong { color: #8b9db1; }
+.day.is-past.selected strong, .day.is-past.selected > span:first-child { color: #6788b4; }
+.weekly-calendar-week.is-past .weekly-ghost > span { color: #8b9db1; }
+.weekly-calendar-week.is-past.selected .weekly-ghost > span { color: #6788b4; }
+.calendar-view-switch { display: flex; gap: 4px; padding: 3px; margin: 12px 0 0; background: #f0f4f9; border-radius: 10px; }
+.calendar-view-switch button { flex: 1; min-height: 34px; background: transparent; border-radius: 8px; color: #71869f; font-size: 11px; font-weight: 600; }
+.calendar-view-switch button[aria-pressed="true"] { background: #fff; color: #355d96; box-shadow: 0 1px 4px #253f5f12; }
+.calendar-day.is-past .calendar-date { color: #8b9db1; }
+.calendar-day.is-past.selected .calendar-date { color: #6788b4; }
+
+/* Moments: an approachable editing flow in the same cool, quiet palette. */
+.moments-layout { gap: 20px; }
+.moments-main { min-width: 0; }
+.upload-zone { position: relative; overflow: hidden; border: 1px solid #dce5ef; border-radius: 18px; background: #fff; padding: 28px 20px 25px; }
+.moment-art { position: relative; width: 136px; height: 116px; margin-bottom: 14px; }
+.moment-art-frame { position: absolute; width: 76px; height: 98px; border-radius: 13px; }
+.moment-art-frame-back { left: 16px; top: 6px; transform: rotate(-12deg); background: #dce8f6; }
+.moment-art-frame-front { left: 46px; top: 3px; transform: rotate(8deg); background: linear-gradient(155deg, #43658e, #263f61); display: grid; place-items: center; box-shadow: 0 8px 20px #304d7028; }
+.moment-art-frame-front img { width: 56px; height: 56px; }
+.moment-art-play { position: absolute; right: 4px; bottom: 4px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #e8f1fc; color: #456c9c; border: 3px solid #fff; }
+.upload-zone .eyebrow { color: #6c85a4; font-size: 10px; letter-spacing: .04em; }
+.upload-zone h2 { margin: 8px 0; color: #293e59; font-size: 21px; font-weight: 700; letter-spacing: -.04em; }
+.upload-zone p { color: #71849b; font-size: 12px; line-height: 1.65; margin: 0 0 18px; }
+.upload-zone .primary { min-height: 46px; padding: 0 23px; border-radius: 11px; background: #4c72ae; font-weight: 700; }
+.upload-zone small { color: #8496aa; font-size: 10px; margin-top: 13px; }
+.moment-design, .clip-list, .export-panel { border-radius: 18px; border-color: #dce5ef; background: #fff; }
+.moment-design .eyebrow { font-size: 10px; color: #7188a4; letter-spacing: .04em; }
+.moment-design .section-heading h2 { color: #293e59; font-size: 18px; margin-top: 6px; }
+.moment-design .subtle { color: #70849c; line-height: 1.6; }
+.moment-design .format-tag, .export-panel .format-tag { border-radius: 7px; background: #edf3fa; color: #6681a1; border-color: #dfe8f2; }
+.design-controls { padding: 14px; margin: 18px 0; border-radius: 12px; background: #f3f6fa; }
+.design-controls label, .design-controls > span { color: #6d829b; }
+.design-controls input { background: #fff; border-color: #dce5ef; border-radius: 8px; }
+.theme-picker button { min-height: 74px; border-radius: 11px; }
+.theme-picker button.selected { box-shadow: inset 0 0 0 1px #91add6; }
+.design-stage { border-radius: 12px; box-shadow: 0 14px 30px #273b5b1a; }
+.scene-controls button { min-height: 42px; border-radius: 9px; }
+.export-panel .export-count { color: #314f78; }
+.export-panel .export-track { background: #e7eff8; }
+.export-panel .export-track i { background: #638ac1; }
+.export-spec strong { color: #405e83; }
+@media (max-width: 760px) {
+  .moments-layout { margin-bottom: 30px; }
+  .moment-design { padding: 20px 16px; margin-top: 16px; }
+  .moments-layout .export-panel { padding: 20px 16px; }
+  .design-stage { width: min(100%, 230px); }
+}
+.design-demo-light { background: radial-gradient(ellipse at 25% 20%, #8da7bc, transparent 50%), linear-gradient(150deg, #5d768e, #33475c 60%, #293746); }
+
+/* Three clearly labeled sample scenes show the transition without needing a video. */
+.design-dummy { position: absolute; inset: 0; overflow: hidden; }
+.design-dummy-1 { background: linear-gradient(150deg, #b1c8d2, #5a8198 52%, #324f65); }
+.design-dummy-2 { background: linear-gradient(155deg, #e1d6be, #af9c82 52%, #6d756a); }
+.design-dummy-3 { background: linear-gradient(145deg, #a7bcb2, #5f827d 53%, #304e5c); }
+.design-dummy .dummy-orb { position: absolute; width: 54%; aspect-ratio: 1; border-radius: 50%; top: 19%; left: 29%; background: #ffffff4a; filter: blur(3px); }
+.design-dummy .dummy-shape { position: absolute; width: 140%; height: 42%; bottom: -10%; left: -20%; border-radius: 50% 50% 0 0; transform: rotate(-10deg); background: #213e5059; }
+.design-dummy-2 .dummy-shape { transform: rotate(12deg); background: #485d526e; }
+.design-dummy-3 .dummy-shape { transform: rotate(-5deg); background: #1d3e4b75; }
+.design-dummy small { position: absolute; top: 35%; left: 0; right: 0; color: #fff; text-align: center; font-size: 11px; text-shadow: 0 1px 8px #203344; }
+/* Match the app icon while retaining the animated progress waves. */
+.progress-yuri .yuri-wave-back, .yuri-roamer-art .yuri-wave-back { fill: #c9e2f8; }
+.progress-yuri .yuri-wave-front, .yuri-roamer-art .yuri-wave-front { fill: #b7d7f5; }

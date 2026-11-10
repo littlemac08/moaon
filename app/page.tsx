@@ -7,11 +7,15 @@ import {
 } from "../lib/moment-design.mjs";
 import { weekRange, weeklySeconds } from "../lib/weekly.mjs";
 import { Duck } from "./components/duck";
+import { YuriWater } from "./components/yuri-water";
+import { YuriWander } from "./components/yuri-wander";
+import { FocusAtmosphere } from "./components/focus-atmosphere";
+import { CalendarGhost } from "./components/calendar-ghost";
+import { ClockDisplay } from "./components/clock-display";
 import { useEffect, useRef, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
-  ArrowUpRight,
   ArrowRight,
   Plus,
   Play,
@@ -34,6 +38,7 @@ import {
   Headphones,
   PenLine,
   LoaderCircle,
+  Maximize2,
 } from "lucide-react";
 type Routine = {
   id: string;
@@ -69,11 +74,76 @@ const dateKey = (d = new Date()) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const time = (s: number) =>
   `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+function weekYear(date: string) {
+  const thursday = new Date(`${weekRange(date).start}T12:00:00`);
+  thursday.setDate(thursday.getDate() + 3);
+  return thursday.getFullYear();
+}
+function weeksOfYear(year: number) {
+  const first = new Date(`${weekRange(`${year}-01-04`).start}T12:00:00`);
+  const next = weekRange(`${year + 1}-01-04`).start;
+  const result: { start: string; end: string; number: number }[] = [];
+  while (dateKey(first) < next) {
+    const start = dateKey(first);
+    result.push({ ...weekRange(start), number: result.length + 1 });
+    first.setDate(first.getDate() + 7);
+  }
+  return result;
+}
 export default function Home() {
   const [tab, setTab] = useState("today");
+  const [compactHeader, setCompactHeader] = useState(false);
+  const [fullscreenOpen, setFullscreenOpen] = useState(false);
+  const fullscreenCloseRef = useRef<HTMLButtonElement>(null);
+  const [showScrollTip, setShowScrollTip] = useState(true);
+  useEffect(() => {
+    const updateHeader = () => {
+      const hero = document.querySelector(".page-heading");
+      setCompactHeader(!!hero && hero.getBoundingClientRect().bottom <= 72);
+      const lastPanel = document.getElementById(tab === "history" ? "history-detail" : "focus-timer");
+      setShowScrollTip((tab === "today" || tab === "history") && !!lastPanel && lastPanel.getBoundingClientRect().top > window.innerHeight * 0.55);
+    };
+    updateHeader();
+    window.addEventListener("scroll", updateHeader, { passive: true });
+    window.addEventListener("resize", updateHeader);
+    return () => {
+      window.removeEventListener("scroll", updateHeader);
+      window.removeEventListener("resize", updateHeader);
+    };
+  }, [tab]);
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [tab]);
+  useEffect(() => {
+    if (!fullscreenOpen) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    fullscreenCloseRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setFullscreenOpen(false);
+      if (event.key === "Tab") {
+        const dialog = document.querySelector<HTMLElement>(".fullscreen-focus");
+        const controls = Array.from(dialog?.querySelectorAll<HTMLButtonElement>("button:not(:disabled)") || []);
+        if (!controls.length) return;
+        const current = controls.indexOf(document.activeElement as HTMLButtonElement);
+        if (event.shiftKey && current <= 0) { event.preventDefault(); controls[controls.length - 1].focus(); }
+        else if (!event.shiftKey && (current === controls.length - 1 || current < 0)) { event.preventDefault(); controls[0].focus(); }
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+      previousFocus?.focus();
+    };
+  }, [fullscreenOpen]);
+  function openFullscreen() {
+    setFullscreenOpen(true);
+  }
+  function closeFullscreen() {
+    setFullscreenOpen(false);
+  }
   const [routines, setRoutines] = useState<Routine[]>(initial);
   const [logs, setLogs] = useState<Log[]>([]);
   const [selectedMissionId, setSelectedMissionId] = useState<string | null>(
@@ -83,9 +153,9 @@ export default function Home() {
   const [ready, setReady] = useState(false);
   const [now, setNow] = useState(Date.now());
   const [selected, setSelected] = useState(dateKey());
-  const [calendarMonth, setCalendarMonth] = useState(() =>
-    dateKey().slice(0, 7),
-  );
+  const [calendarYear, setCalendarYear] = useState(() => weekYear(dateKey()));
+  const [calendarView, setCalendarView] = useState<"week" | "month">("week");
+  const [calendarMonth, setCalendarMonth] = useState(() => dateKey().slice(0, 7));
   const [modal, setModal] = useState<"goal" | "manual" | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -103,6 +173,7 @@ export default function Home() {
   const [designScene, setDesignScene] = useState("intro");
   const [animationTime, setAnimationTime] = useState(1.65);
   const [previewPlaying, setPreviewPlaying] = useState(false);
+  const [previewDummy, setPreviewDummy] = useState(1);
   const [previewCycle, setPreviewCycle] = useState(0);
   const [preview, setPreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -152,7 +223,8 @@ export default function Home() {
     ? timer.elapsed +
       (timer.started ? Math.max(0, (now - timer.started) / 1000) : 0)
     : 0;
-  const dayLogs = logs.filter((l) => l.date === selected);
+  const historyWeek = weekRange(selected);
+  const weekLogs = logs.filter((l) => l.date >= historyWeek.start && l.date <= historyWeek.end);
   const total = weeklySeconds(logs, selected);
   const selectedWeek = weekRange(selected);
   const goal = routines.reduce((s, r) => s + r.minutes, 0);
@@ -175,47 +247,22 @@ export default function Home() {
     d.setDate(d.getDate() + i);
     return d;
   });
-  const [calendarYear, calendarMonthNumber] = calendarMonth
-    .split("-")
-    .map(Number);
-  const firstWeekday =
-    (new Date(calendarYear, calendarMonthNumber - 1, 1).getDay() + 6) % 7;
-  const monthLength = new Date(calendarYear, calendarMonthNumber, 0).getDate();
-  const calendarCells = Array.from(
-    { length: Math.ceil((firstWeekday + monthLength) / 7) * 7 },
-    (_, index) => {
-      const day = index - firstWeekday + 1;
-      return day > 0 && day <= monthLength ? day : null;
-    },
-  );
-  const dailySeconds = logs.reduce<Record<string, number>>((result, log) => {
-    result[log.date] = (result[log.date] || 0) + log.seconds;
-    return result;
-  }, {});
-  const monthEntries = Object.entries(dailySeconds).filter(([date]) =>
-    date.startsWith(calendarMonth),
-  );
-  const monthWeeks = new Set(
-    Array.from(
-      { length: monthLength },
-      (_, index) =>
-        weekRange(`${calendarMonth}-${String(index + 1).padStart(2, "0")}`)
-          .start,
-    ),
-  );
-  const achievedWeeks =
-    goal > 0
-      ? [...monthWeeks].filter(
-          (start) => weeklySeconds(logs, start) >= goal * 60,
-        ).length
-      : 0;
-  function moveMonth(offset: number) {
-    const next = new Date(calendarYear, calendarMonthNumber - 1 + offset, 1);
-    const nextMonth = dateKey(next).slice(0, 7);
-    setCalendarMonth(nextMonth);
-    setSelected(
-      nextMonth === dateKey().slice(0, 7) ? dateKey() : dateKey(next),
-    );
+  const calendarWeeks = weeksOfYear(calendarYear);
+  const [monthYear, monthNumber] = calendarMonth.split("-").map(Number);
+  const monthStart = (new Date(monthYear, monthNumber - 1, 1).getDay() + 6) % 7;
+  const monthDays = new Date(monthYear, monthNumber, 0).getDate();
+  const monthCells = Array.from({ length: Math.ceil((monthStart + monthDays) / 7) * 7 }, (_, index) => {
+    const day = index - monthStart + 1;
+    return day > 0 && day <= monthDays ? day : null;
+  });
+  function moveHistoryMonth(offset: number) {
+    setCalendarMonth(dateKey(new Date(monthYear, monthNumber - 1 + offset, 1, 12)).slice(0, 7));
+  }
+  function moveYear(offset: number) {
+    const year = calendarYear + offset;
+    setCalendarYear(year);
+    const first = weeksOfYear(year)[0].start;
+    setSelected(year === weekYear(dateKey()) ? dateKey() : first);
   }
   function openGoal(r?: Routine) {
     setEditing(r?.id || null);
@@ -232,7 +279,7 @@ export default function Home() {
   }
   function selectMission(id: string) {
     if (timer && timer.routineId !== id) {
-      setToast("현재 미션의 기록을 저장한 뒤 다른 미션을 선택해주세요.");
+      setToast("현재 기록을 저장한 뒤 다른 루틴을 선택해주세요.");
       return;
     }
     setSelectedMissionId(id);
@@ -274,7 +321,7 @@ export default function Home() {
       ...v,
     ]);
     setTimer(null);
-    setToast("미션 기록 완료! 오늘도 멋지게 달렸어요, 꽥!");
+    setToast("기록을 저장했어요.");
   }
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -314,7 +361,7 @@ export default function Home() {
         },
         ...v,
       ]);
-      setToast("한 걸음 추가! 목표가 더 가까워졌어요, 꽥!");
+      setToast("루틴을 추가했어요.");
     }
     setModal(null);
   }
@@ -386,13 +433,26 @@ export default function Home() {
     let frame: number;
     const tick = () => {
       const elapsed = (performance.now() - started) / 1000;
-      if (elapsed >= INTRO_SECONDS + OUTRO_SECONDS) {
+      const middleDuration = 1.8;
+      if (elapsed >= INTRO_SECONDS + middleDuration + OUTRO_SECONDS) {
         setPreviewPlaying(false);
         setAnimationTime(1.65);
+        setDesignScene("intro");
+        setPreviewDummy(1);
         return;
       }
-      setDesignScene(elapsed < INTRO_SECONDS ? "intro" : "outro");
-      setAnimationTime(elapsed < INTRO_SECONDS ? elapsed : elapsed - INTRO_SECONDS);
+      if (elapsed < INTRO_SECONDS) {
+        setPreviewDummy(1);
+        setDesignScene("intro");
+        setAnimationTime(elapsed);
+      } else if (elapsed < INTRO_SECONDS + middleDuration) {
+        setPreviewDummy(2);
+        setDesignScene("middle");
+      } else {
+        setPreviewDummy(3);
+        setDesignScene("outro");
+        setAnimationTime(elapsed - INTRO_SECONDS - middleDuration);
+      }
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
@@ -450,6 +510,7 @@ export default function Home() {
             <button
               key={n.id}
               className={tab === n.id ? "nav-item active" : "nav-item"}
+              aria-current={tab === n.id ? "page" : undefined}
               onClick={() => setTab(n.id)}
             >
               <n.icon size={20} />
@@ -482,41 +543,45 @@ export default function Home() {
           <span>작은 실천이 만드는 변화</span>
           <div className="local-pill">
             <span />
-            YOUR PERSONAL RHYTHM
+            이 기기에 저장
           </div>
         </header>
+        <div className={`compact-today-header ${compactHeader ? "is-visible" : ""}`} aria-hidden="true">
+          <span>{tab === "history" ? "꾸준함이 남긴 기록" : tab === "moments" ? "나의 시간을 한 편으로" : "오늘의 몰입을 모아"}<span className="compact-header-dot">.</span></span>
+          <img src="/yuri-app-mark.svg" alt="" />
+        </div>
         <div className="page-content">
-          <div className={`page-heading ${tab === "today" ? "duck-hero" : ""}`}>
+          <div className={`page-heading ${"duck-hero"}`}>
             <div>
               <div className="eyebrow">
                 {tab === "today"
-                  ? "A LITTLE MORE, EVERY DAY"
+                  ? "오늘"
                   : tab === "history"
-                    ? "A RECORD OF YOUR RHYTHM"
-                    : "YOUR WEEK, IN MOTION"}
+                    ? "기록"
+                    : "모먼트"}
               </div>
               <h1>
                 {tab === "today"
-                  ? "오늘의 몰입을 모아."
+                  ? "오늘의 몰입을 모아"
                   : tab === "history"
-                    ? "꾸준함이 남긴 기록."
-                    : "나의 시간을 한 편으로."}
+                    ? "꾸준함이 남긴 기록"
+                    : "나의 시간을 한 편으로"}
                 <span className="heading-dot">.</span>
               </h1>
               <p>
                 {tab === "today"
-                  ? "유리와 함께, 나만의 속도로. 작은 실천이 당신의 리듬이 됩니다."
+                  ? "나만의 속도로, 오늘을 채워보세요."
                   : tab === "history"
-                    ? "한 주의 목표를 향해 쌓아온 시간을 돌아보세요."
-                    : "집중했던 시간과 소중한 순간을 나만의 영상으로."}
+                    ? "차곡차곡 쌓아온 시간을 돌아보세요."
+                    : "소중한 순간을 나만의 영상으로 남겨요."}
               </p>
             </div>
-            {tab === "today" && (
+            {(tab === "today" || tab === "history" || tab === "moments") && (
               <div className="hero-mascot">
                 <span className="hero-sticker">YOU GOT THIS!</span>
                 <img
-                  src="/yuri-line.svg"
-                  alt="가볍게 앞으로 나아가는 라인 캐릭터 유리"
+                  src="/yuri-app-mark.svg"
+                  alt="물결을 품은 유령 캐릭터 유리"
                 />
                 <span className="hero-spark">✦</span>
                 <span className="hero-trail">GO! GO!</span>
@@ -533,11 +598,7 @@ export default function Home() {
           </div>
           {tab === "today" && (
             <>
-              <div className="week-strip">
-                <div className="week-label">
-                  <span>이번 주의 리듬</span>
-                  <small>매일 조금씩, 나의 속도로.</small>
-                </div>
+              <div className="week-strip" aria-label="이번 주 날짜">
                 <div className="week-days">
                   {days.map((d) => {
                     const key = dateKey(d);
@@ -545,46 +606,39 @@ export default function Home() {
                     return (
                       <button
                         key={key}
-                        className={`day ${selected === key ? "selected" : ""}`}
+                        className={`day ${selected === key ? "selected" : ""} ${key === dateKey() ? "is-today" : ""} ${key < dateKey() ? "is-past" : ""} ${done ? "has-record" : ""}`}
                         disabled={key > dateKey()}
                         onClick={() => setSelected(key)}
-                        aria-label={`${d.getMonth() + 1}월 ${d.getDate()}일 기록`}
+                        aria-label={`${d.getMonth() + 1}월 ${d.getDate()}일${key === dateKey() ? ", 오늘" : ""}${done ? ", 기록 있음" : ""}`}
+                        aria-current={key === dateKey() ? "date" : undefined}
+                        aria-pressed={selected === key}
                       >
                         <span>
                           {d.toLocaleDateString("ko-KR", { weekday: "short" })}
                         </span>
-                        <strong>{d.getDate()}</strong>
-                        <i className={done ? "filled" : ""} />
+                        <span className="day-number">
+                          {done && (
+                            <svg className="day-ghost" viewBox="0 0 100 100" aria-hidden="true">
+                              <path d="M24 44C24 39 23 36 24 31C25 17 35 10 50 10C65 10 75 17 76 31C77 36 76 39 76 44C76 49 81 42 84 39C90 33 96 39 91 46C88 52 80 56 79 62C78 69 83 77 80 82C77 88 71 83 67 82C62 80 59 89 50 89C41 89 38 80 33 82C29 83 23 88 20 82C17 77 22 69 21 62C20 56 12 52 9 46C4 39 10 33 16 39C19 42 24 49 24 44Z" />
+                            </svg>
+                          )}
+                          <strong>{d.getDate()}</strong>
+                        </span>
                       </button>
                     );
                   })}
                 </div>
-                <div className="week-end">
-                  <Leaf size={18} />
-                  <span>
-                    {
-                      new Set(
-                        logs
-                          .filter((l) =>
-                            days.some((d) => dateKey(d) === l.date),
-                          )
-                          .map((l) => l.date),
-                      ).size
-                    }
-                    일의 꾸준함
-                  </span>
-                </div>
               </div>
               <div className="dashboard">
                 <div className="main-column">
-                  <section className="summary-card">
-                    <div>
+                  <section className="summary-card" aria-labelledby="weekly-summary-title">
+                    <div className="summary-copy">
                       <span className="eyebrow">
-                        WEEKLY BALANCE ·{" "}
+                        주간 목표 ·{" "}
                         {selectedWeek.start.slice(5).replace("-", "/")} –{" "}
                         {selectedWeek.end.slice(5).replace("-", "/")}
                       </span>
-                      <h2>이번 주의 집중 시간</h2>
+                      <h2 id="weekly-summary-title">이번 주의 집중 시간</h2>
                       <div className="big-number">
                         {Math.floor(total / 60)}
                         <span>분</span>
@@ -592,8 +646,8 @@ export default function Home() {
                       </div>
                       <p>
                         {total > 0
-                          ? "꾸준히 쌓은 시간이 목표에 가까워지고 있어요."
-                          : "지금, 나를 위한 시간을 시작해보세요."}
+                          ? "이번 주에 기록한 시간이에요."
+                          : "아직 기록이 없어요. 오늘부터 시작해볼까요?"}
                       </p>
                       <div className="summary-chips">
                         <span>
@@ -608,15 +662,15 @@ export default function Home() {
                     </div>
                     <div
                       className="progress-ring"
+                      role="img"
+                      aria-label={`주간 목표 달성률 ${progress}%`}
                       style={
                         { "--progress": `${progress}%` } as React.CSSProperties
                       }
                     >
-                      <div>
-                        <span>
-                          {progress}
-                          <small>%</small>
-                        </span>
+                      <YuriWater progress={progress} className="progress-yuri" appIcon outlined />
+                      <div className={`progress-value ${progress >= 100 ? "is-full" : ""}`}>
+                        <span>{progress}<small>%</small></span>
                         <p>주간 달성률</p>
                       </div>
                     </div>
@@ -624,7 +678,7 @@ export default function Home() {
                   <section className="routine-section">
                     <div className="section-heading">
                       <h2>
-                        나의 미션 <span>{routines.length}</span>
+                        나의 루틴 <span>{routines.length}</span>
                       </h2>
                       <button
                         className="text-button"
@@ -635,7 +689,7 @@ export default function Home() {
                       </button>
                     </div>
                     <p className="mission-select-hint">
-                      미션을 선택한 뒤 집중 카드에서 시작해주세요.
+                      루틴을 선택하고 타이머를 시작하세요.
                     </p>
                     <div className="routine-list">
                       {routines.map((r) => {
@@ -648,12 +702,12 @@ export default function Home() {
                           <article
                             className={`routine-row ${isFocused ? "mission-selected" : ""} ${isActive && !timer?.started ? "mission-paused" : ""}`}
                             key={r.id}
-                            aria-label={`${r.name}${isFocused ? (isActive ? (timer?.started ? ", 집중 중" : ", 잠시 쉬는 중") : ", 시작할 미션") : ""}`}
+                            aria-label={`${r.name}${isFocused ? (isActive ? (timer?.started ? ", 집중 중" : ", 잠시 쉬는 중") : ", 선택한 루틴") : ""}`}
                           >
                             <button
                               type="button"
                               className="mission-select-hit"
-                              aria-label={`${r.name} 미션 선택`}
+                              aria-label={`${r.name} 루틴 선택`}
                               aria-pressed={isFocused}
                               onClick={() => selectMission(r.id)}
                             />
@@ -670,7 +724,7 @@ export default function Home() {
                                     ? timer?.started
                                       ? "집중 중"
                                       : "잠시 쉬는 중"
-                                    : "시작할 미션"}
+                                    : "선택한 루틴"}
                                   {isActive && <strong>{time(elapsed)}</strong>}
                                 </div>
                               )}
@@ -726,13 +780,10 @@ export default function Home() {
                 </div>
                 <div className="side-column">
                   <section className="focus-card" id="focus-timer">
-                    <div className="focus-top">
-                      <span>
-                        <span className="live-dot" />
-                        TIME TO FOCUS
-                      </span>
-                      <Duck size={34} />
-                    </div>
+                    <FocusAtmosphere />
+                    <button className="focus-fullscreen-button" type="button" onClick={openFullscreen} aria-label="전체화면 열기">
+                      <Maximize2 size={19} />
+                    </button>
                     <div
                       className={`focus-mission ${timer && !timer.started ? "paused" : ""}`}
                     >
@@ -740,12 +791,12 @@ export default function Home() {
                         <span />
                         {active
                           ? timer?.started
-                            ? "현재 집중 중인 미션"
-                            : "잠시 쉬고 있는 미션"
-                          : "시작할 미션"}
+                            ? "집중 중"
+                            : "일시정지"
+                          : "선택한 루틴"}
                       </span>
                       <h2 aria-live="polite">
-                        {focus?.name || "먼저 미션을 만들어주세요"}
+                        {focus?.name || "먼저 루틴을 만들어주세요"}
                       </h2>
                       {focus && (
                         <span className="focus-mission-goal">
@@ -755,22 +806,9 @@ export default function Home() {
                         </span>
                       )}
                     </div>
-                    <p>
-                      {active
-                        ? "유리와 함께, 지금 하는 일에 집중해요."
-                        : "하나의 미션에 온전히 집중하는 시간."}
-                    </p>
-                    <div
-                      className={`timer-face ${timer?.started ? "running" : ""}`}
-                    >
-                      <div>
-                        <span>{time(elapsed)}</span>
-                        <small>
-                          {active
-                            ? `주간 목표 ${active.minutes}분`
-                            : "나를 위한 작은 몰입"}
-                        </small>
-                      </div>
+                    <YuriWander progress={progress} className="timer-stage" enabled={!fullscreenOpen} />
+                    <div className="timer-face" role="timer" aria-label={`집중 시간 ${time(elapsed)}`}>
+                      <ClockDisplay value={time(elapsed)} />
                     </div>
                     <div className="timer-actions">
                       <button
@@ -791,7 +829,7 @@ export default function Home() {
                           ? "잠시 쉬기"
                           : timer
                             ? "이어서 집중하기"
-                            : "신나게 시작하기"}
+                            : "타이머 시작"}
                       </button>
                       {timer && (
                         <button
@@ -805,34 +843,11 @@ export default function Home() {
                       )}
                     </div>
                     <span className="focus-footnote">
-                      {focus && !active
-                        ? `${focus.name} · 주 ${focus.minutes}분`
-                        : active
-                          ? "다른 미션으로 바꾸려면 현재 기록을 저장해주세요."
-                          : "유리와 첫 번째 미션을 만들어봐요!"}
+                      {active
+                        ? "다른 루틴을 선택하려면 현재 기록을 저장하세요."
+                        : focus ? "준비되면 타이머를 시작하세요." : "첫 번째 루틴을 만들어보세요."}
                     </span>
                   </section>
-                  <button
-                    className="moment-promo"
-                    onClick={() => setTab("moments")}
-                  >
-                    <div className="promo-art duck-promo">
-                      <img src="/yuri-line.svg" alt="" />
-                      <span className="promo-pop">
-                        A week
-                        <br />
-                        to remember.
-                      </span>
-                      <span className="duration-badge">01:00</span>
-                    </div>
-                    <div className="promo-copy">
-                      <span className="eyebrow">THE MOMENT COLLECTION</span>
-                      <h3>
-                        나의 한 주를 남기는 방법 <ArrowUpRight size={20} />
-                      </h3>
-                      <p>기억하고 싶은 순간들을 하나의 영상으로.</p>
-                    </div>
-                  </button>
                 </div>
               </div>
               <div className="closing-note">
@@ -846,145 +861,55 @@ export default function Home() {
             <div className="history-layout">
               <section className="card calendar-card">
                 <div className="calendar-header">
-                  <div>
-                    <span className="eyebrow">
-                      A CALENDAR FULL OF LITTLE WINS
-                    </span>
-                    <h2>한 주씩 채워가는 목표</h2>
-                  </div>
-                  <button
-                    className="calendar-today"
-                    onClick={() => {
-                      setCalendarMonth(dateKey().slice(0, 7));
-                      setSelected(dateKey());
-                    }}
-                  >
-                    오늘
-                  </button>
+                  <div><span className="eyebrow">나의 기록</span><h2>한 주씩 채워가는 목표</h2></div>
+                  <button className="calendar-today" onClick={() => { setCalendarYear(weekYear(dateKey())); setCalendarMonth(dateKey().slice(0, 7)); setSelected(dateKey()); }}>이번 주</button>
                 </div>
+                <div className="calendar-view-switch" role="group" aria-label="달력 보기 방식">
+                  <button type="button" aria-pressed={calendarView === "week"} onClick={() => setCalendarView("week")}>주간 보기</button>
+                  <button type="button" aria-pressed={calendarView === "month"} onClick={() => setCalendarView("month")}>월간 보기</button>
+                </div>
+                {calendarView === "week" ? <>
                 <div className="calendar-month-bar">
-                  <button
-                    className="icon-button"
-                    aria-label="이전 달"
-                    onClick={() => moveMonth(-1)}
-                  >
-                    <ChevronLeft size={20} />
-                  </button>
-                  <h3 aria-live="polite">
-                    {calendarYear}년 {calendarMonthNumber}월
-                  </h3>
-                  <button
-                    className="icon-button"
-                    aria-label="다음 달"
-                    disabled={calendarMonth >= dateKey().slice(0, 7)}
-                    onClick={() => moveMonth(1)}
-                  >
-                    <ChevronRight size={20} />
-                  </button>
+                  <button className="icon-button" aria-label="이전 해" onClick={() => moveYear(-1)}><ChevronLeft size={20} /></button>
+                  <h3 aria-live="polite">{calendarYear}년</h3>
+                  <button className="icon-button" aria-label="다음 해" disabled={calendarYear >= weekYear(dateKey())} onClick={() => moveYear(1)}><ChevronRight size={20} /></button>
                 </div>
-                <div className="calendar-stats">
-                  <span>
-                    기록한 날 <strong>{monthEntries.length}일</strong>
-                  </span>
-                  <span>
-                    달성한 주 <strong>{achievedWeeks}주</strong>
-                  </span>
-                  <span>
-                    쌓은 시간{" "}
-                    <strong>
-                      {Math.floor(
-                        monthEntries.reduce(
-                          (sum, [, seconds]) => sum + seconds,
-                          0,
-                        ) / 60,
-                      )}
-                      분
-                    </strong>
-                  </span>
-                </div>
-                <div className="calendar-weekdays" aria-hidden="true">
-                  {["월", "화", "수", "목", "금", "토", "일"].map((day) => (
-                    <span key={day}>{day}</span>
-                  ))}
-                </div>
-                <div className="calendar-grid">
-                  {calendarCells.map((day, index) => {
-                    if (day === null)
-                      return (
-                        <div
-                          key={`empty-${index}`}
-                          className="calendar-blank"
-                        />
-                      );
-                    const key = `${calendarMonth}-${String(day).padStart(2, "0")}`;
-                    const seconds = weeklySeconds(logs, key, undefined, true);
-                    const ratio = goal > 0 ? seconds / (goal * 60) : 0;
-                    const percentage = Math.floor(ratio * 100);
-                    const future = key > dateKey();
-                    const achieved = goal > 0 && ratio >= 1;
-                    return (
-                      <button
-                        key={key}
-                        disabled={future}
-                        aria-pressed={selected === key}
-                        aria-current={key === dateKey() ? "date" : undefined}
-                        aria-label={`${calendarMonthNumber}월 ${day}일, ${future ? "예정" : goal ? `목표 달성률 ${percentage}%, ${Math.floor(seconds / 60)}분 주간 기록` : "설정된 목표 없음"}`}
-                        className={`calendar-day ${selected === key ? "selected" : ""} ${achieved ? "achieved" : ""} ${key === dateKey() ? "is-today" : ""}`}
-                        onClick={() => setSelected(key)}
-                      >
-                        <span className="calendar-date">{day}</span>
-                        <span className="calendar-donut">
-                          <svg viewBox="0 0 48 48" aria-hidden="true">
-                            <circle
-                              className="donut-track"
-                              cx="24"
-                              cy="24"
-                              r="20"
-                            />
-                            <circle
-                              className="donut-fill"
-                              cx="24"
-                              cy="24"
-                              r="20"
-                              pathLength="100"
-                              strokeDasharray={`${Math.min(100, ratio * 100)} 100`}
-                              transform="rotate(-90 24 24)"
-                            />
-                          </svg>
-                          <span>
-                            {future || !goal ? (
-                              "–"
-                            ) : (
-                              <>
-                                {percentage}
-                                <small>%</small>
-                              </>
-                            )}
-                          </span>
-                        </span>
-                        <span className="calendar-day-note">
-                          {key === dateKey() ? "오늘" : achieved ? "달성" : ""}
-                        </span>
-                      </button>
-                    );
+                <div className="weekly-calendar-grid" aria-label={`${calendarYear}년 주간 달성률`}>
+                  {calendarWeeks.map((week) => {
+                    const seconds = weeklySeconds(logs, week.start);
+                    const percentage = goal > 0 ? Math.floor(seconds / (goal * 60) * 100) : 0;
+                    const future = week.start > dateKey();
+                    const isSelected = week.start === historyWeek.start;
+                    return <button key={week.start} className={`weekly-calendar-week ${isSelected ? "selected" : ""} ${week.end < dateKey() ? "is-past" : ""}`} disabled={future} aria-pressed={isSelected} aria-current={week.start === weekRange(dateKey()).start ? "date" : undefined} aria-label={`${week.number}주차, ${week.start}부터 ${week.end}, ${future ? "예정" : goal ? `주간 목표 ${percentage}% 달성, ${Math.floor(seconds / 60)}분 기록` : "설정된 목표 없음"}`} onClick={() => setSelected(week.start > dateKey() ? dateKey() : week.start)}>
+                      <span className="weekly-ghost"><CalendarGhost progress={percentage} /><span>{week.number}</span></span>
+                    </button>;
                   })}
                 </div>
-                <div className="calendar-legend">
-                  <span className="legend-ring" />
-                  <span>주간 100% = 도넛 하나</span>
-                  <span className="legend-caption">주간 목표 {goal}분</span>
-                </div>
-                <p className="calendar-help">
-                  월요일부터 해당 날짜까지의 누적 시간 ÷ 현재 주간 목표 합계.
-                  매주 월요일에 새로 시작해요. 달성한 주는 이 달과 겹치는 주를
-                  기준으로 집계해요.
-                </p>
+                <p className="weekly-calendar-hint">유령 하나는 한 주 · 색이 찰수록 목표에 가까워져요</p>
+                </> : <>
+                  <div className="calendar-month-bar">
+                    <button className="icon-button" aria-label="이전 달" onClick={() => moveHistoryMonth(-1)}><ChevronLeft size={20} /></button>
+                    <h3 aria-live="polite">{monthYear}년 {monthNumber}월</h3>
+                    <button className="icon-button" aria-label="다음 달" disabled={calendarMonth >= dateKey().slice(0, 7)} onClick={() => moveHistoryMonth(1)}><ChevronRight size={20} /></button>
+                  </div>
+                  <div className="calendar-weekdays" aria-hidden="true">{["월", "화", "수", "목", "금", "토", "일"].map(day => <span key={day}>{day}</span>)}</div>
+                  <div className="calendar-grid">
+                    {monthCells.map((day, index) => {
+                      if (day === null) return <span key={`blank-${index}`} />;
+                      const key = `${calendarMonth}-${String(day).padStart(2, "0")}`;
+                      const future = key > dateKey();
+                      const percentage = goal ? Math.floor(weeklySeconds(logs, key, undefined, true) / (goal * 60) * 100) : 0;
+                      return <button key={key} className={`calendar-day ${selected === key ? "selected" : ""} ${key < dateKey() ? "is-past" : ""}`} disabled={future} aria-pressed={selected === key} aria-label={`${monthNumber}월 ${day}일, ${future ? "예정" : `주간 목표 ${percentage}% 달성`}`} onClick={() => { setSelected(key); setCalendarYear(weekYear(key)); }}>
+                        <span className="calendar-date-row"><CalendarGhost progress={logs.some(log => log.date === key) ? percentage : 0} /><span className="calendar-date">{day}</span></span>
+                      </button>;
+                    })}
+                  </div>
+                </>}
               </section>
-              <section className="card">
+              <section className="card history-detail" id="history-detail">
                 <div className="section-heading">
                   <h2>
-                    {Number(selected.slice(5, 7))}월 {Number(selected.slice(8))}
-                    일의 기록
+                    {Number(historyWeek.start.slice(5, 7))}.{historyWeek.start.slice(8)} – {Number(historyWeek.end.slice(5, 7))}.{historyWeek.end.slice(8)} 기록
                   </h2>
                   <input
                     aria-label="기록 날짜"
@@ -994,13 +919,14 @@ export default function Home() {
                     onChange={(e) => {
                       if (e.target.value) {
                         setSelected(e.target.value);
+                        setCalendarYear(weekYear(e.target.value));
                         setCalendarMonth(e.target.value.slice(0, 7));
                       }
                     }}
                   />
                 </div>
-                {dayLogs.length ? (
-                  dayLogs.map((l) => (
+                {weekLogs.length ? (
+                  weekLogs.map((l) => (
                     <div className="log-row" key={l.id}>
                       <div className="routine-icon green">
                         <Check size={20} />
@@ -1030,8 +956,8 @@ export default function Home() {
                 ) : (
                   <div className="empty">
                     <BookOpen size={32} />
-                    <h3>아직 비어 있는 하루</h3>
-                    <p>작은 실천 하나로 첫 페이지를 채워보세요.</p>
+                    <h3>아직 비어 있는 한 주</h3>
+                    <p>작은 실천 하나로 이번 주를 채워보세요.</p>
                     <button
                       className="primary"
                       disabled={!routines.length}
@@ -1046,17 +972,19 @@ export default function Home() {
           )}
           {tab === "moments" && (
             <div className="moments-layout">
-              <div>
+              <div className="moments-main">
                 <section className="upload-zone">
-                  <div className="upload-icon">
-                    <Film size={30} />
+                  <div className="moment-art" aria-hidden="true">
+                    <div className="moment-art-frame moment-art-frame-back" />
+                    <div className="moment-art-frame moment-art-frame-front"><img src="/yuri-line.svg" alt="" /></div>
+                    <span className="moment-art-play"><Play size={13} fill="currentColor" /></span>
                   </div>
-                  <span className="eyebrow">A FILM OF YOUR OWN</span>
-                  <h2>기억할 순간을 모아보세요.</h2>
+                  <span className="eyebrow">영상 모으기</span>
+                  <h2>오늘의 장면을 모아보세요.</h2>
                   <p>
-                    운동, 독서, 나를 돌보는 시간.
+                    일상의 작은 순간을 모아
                     <br />
-                    여러 영상을 하나의 짧은 필름으로.
+                    나만의 짧은 영상으로 남겨요.
                   </p>
                   <input
                     ref={fileRef}
@@ -1083,7 +1011,7 @@ export default function Home() {
                 <section className="card moment-design">
                   <div className="section-heading">
                     <div>
-                      <span className="eyebrow">MADE WITH MOAON</span>
+                      <span className="eyebrow">영상 디자인</span>
                       <h2>모아온의 시그니처</h2>
                     </div>
                     <span className="format-tag">시작 3초 + 종료 2초</span>
@@ -1130,20 +1058,20 @@ export default function Home() {
                     ))}
                   </div>
                   <div className="design-stage">
-                    {clips.length > 0 ? <video className="design-footage" key={designScene + previewCycle} src={clips[designScene === "intro" ? 0 : clips.length - 1].url} autoPlay muted playsInline loop onLoadedMetadata={(event) => { const c = clips[designScene === "intro" ? 0 : clips.length - 1]; event.currentTarget.currentTime = c.start; }} onTimeUpdate={(event) => { const c = clips[designScene === "intro" ? 0 : clips.length - 1]; if (event.currentTarget.currentTime >= c.end) event.currentTarget.currentTime = c.start; }} /> : <div className="design-demo-light"><span>영상 추가 시 내 영상 위에 적용됩니다</span></div>}
-
-                    <img
+                    {previewPlaying ? (
+                      <div className={`design-dummy design-dummy-${previewDummy}`} aria-label={`미리보기 임시 장면 ${previewDummy}`}>
+                        <span className="dummy-orb" /><span className="dummy-shape" />
+                        <small>임시 장면 {previewDummy}</small>
+                      </div>
+                    ) : clips.length > 0 ? <video className="design-footage" key={designScene + previewCycle} src={clips[designScene === "intro" ? 0 : clips.length - 1].url} autoPlay muted playsInline loop onLoadedMetadata={(event) => { const c = clips[designScene === "intro" ? 0 : clips.length - 1]; event.currentTarget.currentTime = c.start; }} onTimeUpdate={(event) => { const c = clips[designScene === "intro" ? 0 : clips.length - 1]; if (event.currentTarget.currentTime >= c.end) event.currentTarget.currentTime = c.start; }} /> : <div className="design-demo-light"><span>영상 추가 시 내 영상 위에 적용됩니다</span></div>}
+                    {designScene !== "middle" && <img
                       key={`${designScene}-${previewCycle}-${previewPlaying}`}
                       className="motion-overlay"
                       src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(momentCard({ ...filmStats, kind: designScene, time: animationTime }))}`}
-                      alt={
-                        designScene === "intro"
-                          ? `시작 장면: 주간 달성률 ${filmStats.percent}%, ${filmStats.minutes}분`
-                          : "종료 장면: 모아온. 작은 오늘을 모아, 더 나은 나로."
-                      }
-                    />
+                      alt={designScene === "intro" ? `시작 장면: 주간 달성률 ${filmStats.percent}%, ${filmStats.minutes}분` : "종료 장면: 모아온. 작은 오늘을 모아, 더 나은 나로."}
+                    />}
                     <span className="scene-badge">
-                      {designScene === "intro" ? "OPENING · 3s" : "ENDING · 2s"}
+                      {designScene === "intro" ? "OPENING · 3s" : designScene === "outro" ? "ENDING · 2s" : "임시 장면 2"}
                     </span>
                   </div>
                   <div className="scene-controls">
@@ -1161,7 +1089,7 @@ export default function Home() {
                       className={designScene === "outro" ? "selected" : ""}
                       onClick={() => {
                         setPreviewPlaying(false);
-                        setAnimationTime(1.65);
+                        setAnimationTime(1);
                         setDesignScene("outro");
                       }}
                     >
@@ -1178,7 +1106,7 @@ export default function Home() {
                     </button>
                   </div>
                   <p className="design-note">
-                    첫 컷과 마지막 컷 위에 반투명 필름을 겹쳐요. 유리의 선과 집중 시간, 달성률이 차례로 나타납니다. 시작 3초 · 종료 2초가 추가돼요.
+                    앞뒤 미리보기는 임시 장면 3개로 전환 흐름을 보여줘요. 실제 영상에는 선택한 컷이 적용됩니다.
                   </p>
                 </section>
                 {clips.length > 0 && (
@@ -1378,14 +1306,46 @@ export default function Home() {
           <span>
             모아온<span className="brand-dot">.</span>
           </span>
-          <small>SMALL MOMENTS. LASTING CHANGE.</small>
-          <span className="footer-right">Made for your next little win.</span>
+          <small>작은 오늘을 모아</small>
+          <span className="footer-right"></span>
         </footer>
       </main>
+      {fullscreenOpen && (
+        <div className="fullscreen-focus" role="dialog" aria-modal="true" aria-label="전체화면 집중 모드">
+          <FocusAtmosphere />
+          <div className="fullscreen-focus-top">
+            <span className="fullscreen-brand">moaon<span className="fullscreen-brand-dot">.</span></span>
+            <button ref={fullscreenCloseRef} type="button" className="fullscreen-close" onClick={closeFullscreen} aria-label="전체화면 닫기"><X size={22} /></button>
+          </div>
+          <div className="fullscreen-focus-heading">
+            <span>{active ? timer?.started ? "집중 중" : "일시정지" : "선택한 루틴"}</span>
+            <h2>{focus?.name || "먼저 루틴을 만들어주세요"}</h2>
+          </div>
+          <div className="fullscreen-clock" role="timer" aria-label={`집중 시간 ${time(elapsed)}`}>
+            <ClockDisplay value={time(elapsed)} />
+          </div>
+          <YuriWander progress={progress} className="fullscreen-yuri-stage" />
+          <div className="fullscreen-actions">
+            <button className="fullscreen-start" disabled={!focus} onClick={() => timer?.started ? setTimer({ ...timer, elapsed, started: null }) : focus && start(focus.id)}>
+              {timer?.started ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
+              {timer?.started ? "잠시 쉬기" : timer ? "이어서 집중하기" : "타이머 시작"}
+            </button>
+            {timer && <button className="fullscreen-save" disabled={elapsed < 1} onClick={saveTimer}><Check size={18} /> 기록 저장</button>}
+          </div>
+        </div>
+      )}
+      {(tab === "today" || tab === "history") && !modal && (
+        <div className={`scroll-tip ${showScrollTip ? "is-visible" : ""}`} aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true">
+            <path d="M7 7l5 5 5-5M7 12l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+      )}
       <nav className="mobile-nav">
         {nav.map((n) => (
           <button
             className={tab === n.id ? "active" : ""}
+            aria-current={tab === n.id ? "page" : undefined}
             key={n.id}
             onClick={() => setTab(n.id)}
           >
