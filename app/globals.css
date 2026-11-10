@@ -5215,3 +5215,201 @@ html:has(.fullscreen-focus) { scroll-snap-type: none !important; }
 /* Match the app icon while retaining the animated progress waves. */
 .progress-yuri .yuri-wave-back, .yuri-roamer-art .yuri-wave-back { fill: #c9e2f8; }
 .progress-yuri .yuri-wave-front, .yuri-roamer-art .yuri-wave-front { fill: #b7d7f5; }
+.design-dummy .dummy-transition { position: absolute; inset: 0; background: #000; pointer-events: none; }
+
+/* Each cut has a frame from its selected starting point. */
+.clip-thumbnail { position: relative; flex: 0 0 54px; width: 54px; height: 66px; padding: 0; overflow: hidden; display: grid; place-items: center; border: 0; border-radius: 9px; background: #dce8f5; color: #53779f; }
+.clip-thumbnail video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.clip-thumbnail-play { position: absolute; right: 4px; bottom: 4px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; color: #fff; background: #1d365bbb; }
+.clip-head .clip-name { min-width: 0; }
+@media (max-width: 760px) { .clip-thumbnail { flex-basis: 48px; width: 48px; height: 60px; } }
+.design-stage .preview-transition { position: absolute; inset: 0; z-index: 1; background: #000; pointer-events: none; }
+.design-stage .motion-overlay { z-index: 2; }
+.design-stage .scene-badge { z-index: 3; }
+
+/* Moments editing is a guided sequence, with one task at a time. */
+.moments-layout { grid-template-columns: minmax(0, 1fr); }
+.moment-step-header { display: flex; align-items: center; gap: 12px; margin: 4px 0 0; }
+.moment-step-back { width: 42px; height: 42px; display: grid; place-items: center; flex: none; border-radius: 12px; background: #e9f0f9; color: #3b5c85; }
+.moment-step-header span { color: #788da6; font-size: 11px; }
+.moment-step-header h1 { margin: 5px 0 0; color: #293e59; font-size: 21px; letter-spacing: -.04em; }
+.moment-step-1 .clip-list, .moment-step-2 .moment-design { margin-top: 0; }
+.moment-step-0 .upload-zone { margin-top: 0; }
+.moment-add-more { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; min-height: 48px; margin-top: 14px; border: 1px dashed #acc4df; border-radius: 11px; background: #f7faff; color: #4c6f9b; font-size: 13px; font-weight: 650; }
+.moment-empty-cuts { padding: 28px 0 14px; color: #71869f; text-align: center; font-size: 12px; }
+.moment-step-footer { display: flex; flex-direction: column; gap: 12px; margin-top: 22px; }
+.moment-step-footer > span { text-align: center; color: #71869f; font-size: 11px; }
+.moment-next { width: 100%; min-height: 50px; font-weight: 700; }
+.moment-step-error { margin-top: 10px; text-align: center; color: #b54b48; font-size: 11px; }
+@media (min-width: 761px) { .moments-layout { max-width: 640px; } .moment-step-header { grid-column: 1 / -1; } }
+.moment-resume { margin-top: 12px; padding: 8px; color: #4c6f9b; background: transparent; font-size: 12px; font-weight: 600; }
+
+/* Compact clip cards keep the thumbnail, actions and trim controls distinct. */
+.moment-step-1 .clip-list { padding: 20px 16px; }
+.moment-step-1 .clip { padding: 16px 0; border-color: #e8eef5; }
+.clip-head { gap: 9px; }
+.clip-details { flex: 1; min-width: 0; display: grid; gap: 5px; }
+.clip-index { color: #8093a9; font-size: 10px; font-weight: 600; }
+.clip-details .clip-name { width: 100%; padding: 0; color: #304760; font-size: 12px; font-weight: 650; text-decoration: none; }
+.clip-actions { display: flex; flex: none; align-items: center; }
+.clip-actions .icon-button { width: 36px; height: 44px; color: #6c8198; }
+.clip-actions .icon-button:disabled { opacity: .28; }
+.clip-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto; gap: 8px; align-items: end; margin-top: 13px; padding: 11px 12px; background: #f3f6fa; border-radius: 11px; }
+.clip-controls label { display: block; min-width: 0; color: #6c8198; font-size: 10px; font-weight: 600; }
+.clip-time-unit { color: #9aabbb; font-weight: 400; }
+.clip-controls input { display: block; width: 100%; min-width: 0; height: 38px; margin: 5px 0 0; padding: 0 9px; border: 1px solid #dce5ef; border-radius: 8px; background: #fff; color: #304760; font-size: 14px; font-variant-numeric: tabular-nums; }
+.clip-controls > span { padding-bottom: 10px; color: #8296ac; font-size: 12px; }
+.clip-controls small { display: grid; gap: 4px; min-width: 52px; padding-bottom: 4px; color: #899caf; font-size: 9px; line-height: 1.2; text-align: right; white-space: nowrap; }
+.clip-controls small strong { color: #4a6b94; font-size: 12px; }
+@media (max-width: 760px) { .clip-head { gap: 7px; } .clip-actions .icon-button { width: 34px; height: 44px; } .clip-details .clip-name { padding: 0; font-size: 11px; } }
+.clip-caption { color: #6b819b; font-size: 11px; }
+
+/* Trim inputs sit beside each thumbnail to keep the list compact. */
+.moment-step-1 .clip { padding: 12px 0; }
+.clip-details .clip-controls { display: flex; align-items: center; gap: 4px; margin: 0; padding: 0; background: transparent; }
+.clip-details .clip-controls label { flex: 1 1 0; min-width: 0; }
+.clip-details .clip-controls input { width: 100%; height: 38px; margin: 0; padding: 0 6px; text-align: center; font-size: 12px; }
+.clip-details .clip-controls > span { padding: 0; font-size: 11px; }
+.clip-details .clip-seconds { color: #8093a9; white-space: nowrap; }
+
+/* A single, balanced time control for each cut. */
+.clip-details { gap: 7px; }
+.clip-index { color: #71859d; letter-spacing: -.01em; }
+.clip-details .clip-controls { height: 40px; box-sizing: border-box; padding: 0 5px; gap: 2px; border: 1px solid #dce5ef; border-radius: 10px; background: #f4f7fb; }
+.clip-details .clip-controls label { display: flex; align-items: center; height: 100%; }
+.clip-details .clip-controls input { height: 32px; padding: 0 2px; border: 0; border-radius: 6px; background: transparent; color: #334e70; font-size: 16px; font-weight: 600; box-shadow: none; -moz-appearance: textfield; }
+.clip-details .clip-controls input::-webkit-inner-spin-button,
+.clip-details .clip-controls input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.clip-details .clip-controls input:focus-visible { outline: 2px solid #86a7d0; outline-offset: -2px; background: #fff; }
+.clip-details .clip-controls > span { color: #90a3b9; font-size: 11px; }
+.clip-details .clip-seconds { padding-right: 3px !important; }
+.clip-thumbnail { border-radius: 10px; }
+.clip-actions .icon-button { display: grid; place-items: center; }
+
+/* A lighter timeline treatment keeps each clip readable at a glance. */
+.moment-step-1 .clip-list { padding: 22px 18px; }
+.moment-step-1 .clip { padding: 14px 0; }
+.clip-head { align-items: center; gap: 10px; }
+.clip-thumbnail { flex-basis: 52px; width: 52px; height: 64px; border-radius: 11px; }
+.clip-details { gap: 6px; }
+.clip-index { color: #536c89; font-size: 10px; font-weight: 700; }
+.clip-details .clip-controls { height: 34px; padding: 0; gap: 5px; border: 0; border-radius: 0; background: transparent; }
+.clip-details .clip-controls label { height: 34px; border: 1px solid #d8e3f0; border-radius: 8px; background: #fff; }
+.clip-details .clip-controls input { height: 30px; color: #334e70; font-size: 16px; font-weight: 600; }
+.clip-details .clip-controls > span { color: #8ca0b7; }
+.clip-details .clip-seconds { padding: 0 !important; }
+.clip-actions { gap: 1px; }
+.clip-actions .icon-button { width: 33px; height: 44px; color: #66809c; border-radius: 9px; }
+.clip-actions .icon-button:hover:not(:disabled) { background: #edf3fa; color: #355d96; }
+@media (max-width: 350px) {
+  .moment-step-1 .clip-list { padding: 18px 12px; }
+  .clip-head { gap: 6px; }
+  .clip-actions .icon-button { width: 30px; }
+  .clip-thumbnail { flex-basis: 46px; width: 46px; height: 60px; }
+}
+
+/* Keep the Moments entry and its main action together on a mobile screen. */
+@media (max-width: 760px) {
+  body:has(.moment-step-0) .page-content { padding-top: 14px; }
+  body:has(.moment-step-0) .duck-hero { min-height: clamp(150px, 24svh, 205px); padding: 22px; }
+  body:has(.moment-step-0) .hero-mascot { width: clamp(108px, 32vw, 140px); height: clamp(112px, 19svh, 152px); bottom: -5px; }
+  body:has(.moment-step-0) .moments-layout { gap: 0; margin-top: 12px; margin-bottom: 18px; }
+  .moment-step-0 .upload-zone { padding: 17px 18px; }
+  .moment-step-0 .moment-art { width: 110px; height: 86px; margin-bottom: 8px; }
+  .moment-step-0 .moment-art-frame { width: 60px; height: 78px; border-radius: 11px; }
+  .moment-step-0 .moment-art-frame-back { left: 12px; top: 4px; }
+  .moment-step-0 .moment-art-frame-front { left: 37px; top: 2px; }
+  .moment-step-0 .moment-art-frame-front img { width: 45px; height: 45px; }
+  .moment-step-0 .moment-art-play { width: 27px; height: 27px; right: 0; bottom: 0; }
+  .moment-step-0 .upload-zone h2 { margin: 5px 0; font-size: 19px; }
+  .moment-step-0 .upload-zone p { margin-bottom: 12px; line-height: 1.5; }
+  .moment-step-0 .upload-zone small { margin-top: 9px; }
+  .moment-step-0 .moment-resume { margin-top: 4px; }
+}
+@media (max-width: 760px) and (max-height: 720px) {
+  body:has(.moment-step-0) .duck-hero > div:first-child { max-width: 70%; }
+  body:has(.moment-step-0) .duck-hero h1 { font-size: 22px; line-height: 1.25; letter-spacing: -.06em; }
+}
+
+/* A compact theme gallery leads into a separate export step. */
+.theme-picker-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 22px 0 10px; }
+.theme-picker-heading strong { color: #304760; font-size: 13px; }
+.theme-picker-heading span { color: #8295aa; font-size: 10px; }
+.theme-picker { gap: 8px; }
+.theme-picker button { min-width: 0; min-height: 0; align-items: stretch; gap: 5px; padding: 7px 7px 10px; text-align: left; background: #fff; border: 1px solid #dce5ef; border-radius: 11px; }
+.theme-picker button.selected { background: #f5f9ff; border-color: #7398c9; box-shadow: inset 0 0 0 1px #7398c9; }
+.theme-picker i { display: grid; place-items: center; width: 100%; height: 44px; border: 0; border-radius: 7px; color: #fff; }
+.theme-picker strong { padding: 1px 2px 0; color: #304760; font-size: 11px; font-weight: 700; }
+.theme-picker small { padding: 0 2px; color: #8093a8; font-size: 9px; white-space: nowrap; }
+.moment-design-next { margin-top: 20px; }
+.moment-step-3 .export-panel { position: static; }
+
+/* Keep week, theme and preview together without crowding the date field. */
+@media (max-width: 760px) {
+  .moment-step-2 .moment-design { padding: 16px; }
+  .moment-step-2 .moment-design .section-heading h2 { margin-top: 4px; font-size: 16px; }
+  .moment-step-2 .design-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 8px 10px; margin: 12px 0; }
+  .moment-step-2 .design-controls label { display: flex; align-items: center; gap: 7px; min-width: 0; white-space: nowrap; font-size: 10px; }
+  .moment-step-2 .design-controls input { flex: 1; width: 100%; min-width: 0; min-height: 38px; margin: 0; padding: 5px 6px; font-size: 13px; }
+  .moment-step-2 .design-controls > span { display: block; text-align: right; font-size: 9px; line-height: 1.5; white-space: nowrap; }
+  .moment-step-2 .design-controls strong { font-size: 10px; }
+  .moment-step-2 .theme-picker-heading { margin: 12px 0 7px; }
+  .moment-step-2 .theme-picker button { padding: 6px; gap: 3px; }
+  .moment-step-2 .theme-picker i { height: 32px; }
+  .moment-step-2 .moment-preview-layout { display: flex; align-items: center; gap: 14px; margin-top: 14px; }
+  .moment-step-2 .design-stage { width: clamp(120px, 17svh, 150px); flex: none; margin: 0; }
+  .moment-step-2 .scene-controls { flex: 1; min-width: 0; flex-direction: column; gap: 7px; margin: 0; }
+  .moment-step-2 .scene-controls button { min-height: 42px; flex: none; }
+  .moment-step-2 .design-note { margin-top: 9px; line-height: 1.45; }
+  .moment-step-2 .moment-design-next { margin-top: 10px; min-height: 46px; }
+}
+@media (max-width: 760px) and (max-height: 720px) {
+  body:has(.moment-step-2) .topbar { display: none; }
+  body:has(.moment-step-2) .page-content { padding-top: 12px; }
+  .moment-step-2 .moment-step-header h1 { font-size: 18px; }
+  .moment-step-2 .moment-design { padding: 12px; }
+  .moment-step-2 .moment-design .section-heading { display: none; }
+  .moment-step-2 .design-controls { margin: 0 0 9px; }
+  .moment-step-2 .theme-picker-heading { margin: 8px 0 6px; }
+  .moment-step-2 .theme-picker i { height: 27px; }
+  .moment-step-2 .moment-preview-layout { margin-top: 9px; }
+  .moment-step-2 .design-stage { width: 112px; }
+  .moment-step-2 .design-note { margin-top: 6px; }
+  .moment-step-2 .moment-design-next { margin-top: 7px; }
+}
+
+/* The export summary fits alongside its primary action on a mobile screen. */
+@media (max-width: 760px) {
+  .moment-step-3 .export-panel { padding: 18px 16px; }
+  .moment-step-3 .export-count { margin-top: 18px; font-size: 34px; line-height: 1; }
+  .moment-step-3 .export-count small { font-size: 12px; }
+  .moment-step-3 .export-track { margin: 12px 0 7px; }
+  .moment-step-3 .export-panel > .subtle { font-size: 11px; line-height: 1.45; }
+  .moment-step-3 .export-spec { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; margin: 16px 0; padding: 15px 0; }
+  .moment-step-3 .export-spec > span { display: flex; flex-direction: column; gap: 4px; font-size: 10px; }
+  .moment-step-3 .export-spec strong { font-size: 11px; }
+  .moment-step-3 .export-spec > span:last-child { grid-column: 1 / -1; }
+  .moment-step-3 .export-button { min-height: 48px; }
+  .moment-step-3 .privacy-note { margin-top: 12px; font-size: 10px; line-height: 1.5; }
+}
+@media (max-width: 760px) and (max-height: 720px) {
+  body:has(.moment-step-3) .topbar { display: none; }
+  body:has(.moment-step-3) .page-content { padding-top: 12px; }
+  .moment-step-3 .moment-step-header h1 { font-size: 18px; }
+  .moment-step-3 .export-panel { padding: 15px 16px; }
+  .moment-step-3 .export-count { margin-top: 13px; }
+  .moment-step-3 .export-spec { gap: 9px 16px; margin: 12px 0; padding: 12px 0; }
+}
+
+.export-mute { position: relative; display: flex; align-items: center; justify-content: space-between; min-height: 48px; gap: 12px; margin: 0 0 14px; padding: 8px 11px; border-radius: 10px; background: #f3f6fa; cursor: pointer; }
+.export-mute > span:first-child { display: grid; gap: 3px; }
+.export-mute strong { color: #304760; font-size: 11px; }
+.export-mute small { color: #71869f; font-size: 10px; }
+.export-mute input { position: absolute; right: 11px; width: 42px; height: 28px; margin: 0; opacity: 0; cursor: pointer; }
+.export-mute-switch { display: block; width: 40px; height: 24px; flex: none; border-radius: 999px; background: #bac9da; transition: background .2s; }
+.export-mute-switch::after { content: ""; display: block; width: 18px; height: 18px; margin: 3px; border-radius: 50%; background: white; transition: transform .2s; }
+.export-mute input:checked + .export-mute-switch { background: #567eb5; }
+.export-mute input:checked + .export-mute-switch::after { transform: translateX(16px); }
+.export-mute input:focus-visible + .export-mute-switch { outline: 3px solid #86a7d0; outline-offset: 2px; }
+.export-mute input:disabled { cursor: default; }
+@media (prefers-reduced-motion: reduce) { .export-mute-switch, .export-mute-switch::after { transition: none; } }

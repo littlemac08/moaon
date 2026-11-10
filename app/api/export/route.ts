@@ -1,4 +1,5 @@
 import sharp from "sharp";
+import { cutTransitions } from "../../../lib/cut-transitions.mjs";
 import {
   momentCard,
   momentThemes,
@@ -104,7 +105,9 @@ export async function POST(request: Request) {
       const hasAudio = meta.streams.some(
         (s: { codec_type: string }) => s.codec_type === "audio",
       );
-      const duration = String(cuts[i].end - cuts[i].start);
+      const seconds = cuts[i].end - cuts[i].start;
+      const duration = String(seconds);
+      const transition = cutTransitions(seconds, i, cuts.length);
       const args = ["-y", "-ss", String(cuts[i].start), "-i", input];
       if (!hasAudio)
         args.push(
@@ -121,7 +124,7 @@ export async function POST(request: Request) {
         "-map",
         hasAudio ? "0:a:0" : "1:a:0",
         "-vf",
-        "scale=720:1280:force_original_aspect_ratio=decrease,pad=720:1280:(ow-iw)/2:(oh-ih)/2:color=0x141c18,setsar=1,fps=30",
+        ["scale=720:1280:force_original_aspect_ratio=decrease", "pad=720:1280:(ow-iw)/2:(oh-ih)/2:color=0x141c18", "setsar=1", "fps=30", ...transition.video].join(","),
         "-c:v",
         "libx264",
         "-preset",
@@ -137,7 +140,7 @@ export async function POST(request: Request) {
         "-ac",
         "2",
         "-af",
-        "apad",
+        ["apad", `atrim=duration=${duration}`, ...transition.audio, ...(design.muteAudio === true ? ["volume=0"] : [])].join(","),
         "-video_track_timescale",
         "90000",
         join(dir, `cut-${i}.mp4`),

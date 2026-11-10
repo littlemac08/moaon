@@ -7,6 +7,7 @@ import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 import ts from 'typescript';
 import { momentCard, momentThemes, INTRO_SECONDS, OUTRO_SECONDS } from '../lib/moment-design.mjs';
+import { cutTransitions } from '../lib/cut-transitions.mjs';
 
 const source = await readFile(new URL('../lib/browser-export.ts', import.meta.url), 'utf8');
 const compiled = ts.transpileModule(source, {
@@ -50,6 +51,7 @@ function harness(failure = '') {
     require(name) {
       if (name === '@ffmpeg/ffmpeg') return { FFmpeg };
       if (name === './moment-design.mjs') return { momentCard, momentThemes, INTRO_SECONDS, OUTRO_SECONDS };
+      if (name === './cut-transitions.mjs') return { cutTransitions };
       throw new Error(`Unexpected dependency: ${name}`);
     },
     async fetch(path, init) {
@@ -101,7 +103,8 @@ for (const [i, args] of cuts.entries()) {
   assert.equal(option(args, '-c:a'), 'aac');
   assert.equal(option(args, '-ar'), '44100');
   assert.equal(option(args, '-ac'), '2');
-  assert.equal(option(args, '-af'), 'apad');
+  assert.match(option(args, '-af'), i === 0 ? /afade=t=out/ : /afade=t=in/);
+  assert.match(option(args, '-vf'), i === 0 ? /fade=t=out/ : /fade=t=in/);
   assert.match(option(args, '-vf'), /scale=720:1280.*setsar=1,fps=30/);
   const maps = args.flatMap((arg, index) => arg === '-map' ? [args[index + 1]] : []);
   assert.deepEqual(maps, ['0:v:0', i === 0 ? '0:a:0' : '1:a:0']);
@@ -128,6 +131,12 @@ assert.equal(state.listeners.size, 0);
 assert.equal(state.urls.size, 0);
 assert.equal(state.terminated, 1);
 
+{
+  const { state, renderVideo } = harness();
+  await renderVideo([clip(0, 1)], { theme: 'sage', muteAudio: true });
+  const cut = state.commands.find(args => args.at(-1) === 'cut-0.mp4');
+  assert.match(option(cut, '-af'), /(?:^|,)volume=0(?:,|$)/);
+}
 for (const failure of ['fetch', 'load', 'encode', 'canvas', 'image', 'png', 'read']) {
   const { state, renderVideo } = harness(failure);
   await assert.rejects(() => renderVideo([clip(0, 1)], { theme: 'sage' }));

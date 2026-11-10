@@ -1,5 +1,6 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { momentCard, momentThemes, INTRO_SECONDS, OUTRO_SECONDS } from './moment-design.mjs';
+import { cutTransitions } from './cut-transitions.mjs';
 
 type Clip = { file: File; start: number; end: number };
 export async function renderVideo(clips: Clip[], design: any) {
@@ -36,7 +37,9 @@ export async function renderVideo(clips: Clip[], design: any) {
       ff.off('log', listen);
       const args = ['-y','-ss',String(clips[i].start),'-i',input];
       if (!hasAudio) args.push('-f','lavfi','-i','anullsrc=channel_layout=stereo:sample_rate=44100');
-      args.push('-t',String(clips[i].end-clips[i].start),'-map','0:v:0','-map',hasAudio?'0:a:0':'1:a:0','-vf','scale=720:1280:force_original_aspect_ratio=decrease,pad=720:1280:(ow-iw)/2:(oh-ih)/2:color=0x141c18,setsar=1,fps=30','-c:v','libx264','-preset','ultrafast','-crf','23','-pix_fmt','yuv420p','-c:a','aac','-ar','44100','-ac','2','-af','apad','-video_track_timescale','90000',`cut-${i}.mp4`);
+      const duration = clips[i].end - clips[i].start;
+      const transition = cutTransitions(duration, i, clips.length);
+      args.push('-t',String(duration),'-map','0:v:0','-map',hasAudio?'0:a:0':'1:a:0','-vf',['scale=720:1280:force_original_aspect_ratio=decrease','pad=720:1280:(ow-iw)/2:(oh-ih)/2:color=0x141c18','setsar=1','fps=30',...transition.video].join(','),'-c:v','libx264','-preset','ultrafast','-crf','23','-pix_fmt','yuv420p','-c:a','aac','-ar','44100','-ac','2','-af',['apad',`atrim=duration=${duration}`,...transition.audio,...(design.muteAudio === true ? ['volume=0'] : [])].join(','),'-video_track_timescale','90000',`cut-${i}.mp4`);
       await run(args);
       await ff.deleteFile(input);
     }

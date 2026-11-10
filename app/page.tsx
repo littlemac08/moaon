@@ -6,12 +6,14 @@ import {
   OUTRO_SECONDS,
 } from "../lib/moment-design.mjs";
 import { weekRange, weeklySeconds } from "../lib/weekly.mjs";
+import { previewTransitionOpacity } from "../lib/cut-transitions.mjs";
 import { Duck } from "./components/duck";
 import { YuriWater } from "./components/yuri-water";
 import { YuriWander } from "./components/yuri-wander";
 import { FocusAtmosphere } from "./components/focus-atmosphere";
 import { CalendarGhost } from "./components/calendar-ghost";
 import { ClockDisplay } from "./components/clock-display";
+import { ClipThumbnail } from "./components/clip-thumbnail";
 import { useEffect, useRef, useState } from "react";
 import {
   ChevronLeft,
@@ -168,12 +170,16 @@ export default function Home() {
   const clipsRef = useRef<Clip[]>([]);
   const [busy, setBusy] = useState(false);
   const [loadingClips, setLoadingClips] = useState(false);
+  const [momentStep, setMomentStep] = useState<0 | 1 | 2 | 3>(0);
   const [momentTheme, setMomentTheme] = useState("sage");
+  const [muteAudio, setMuteAudio] = useState(false);
   const [momentWeek, setMomentWeek] = useState(() => dateKey());
   const [designScene, setDesignScene] = useState("intro");
   const [animationTime, setAnimationTime] = useState(1.65);
   const [previewPlaying, setPreviewPlaying] = useState(false);
   const [previewDummy, setPreviewDummy] = useState(1);
+  const [previewClipIndex, setPreviewClipIndex] = useState(0);
+  const [previewFade, setPreviewFade] = useState(0);
   const [previewCycle, setPreviewCycle] = useState(0);
   const [preview, setPreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -411,7 +417,7 @@ export default function Home() {
             url,
             duration,
             start: 0,
-            end: Math.min(duration, 10),
+            end: Math.min(Math.floor(duration * 10) / 10, 10),
           });
         } catch (e) {
           URL.revokeObjectURL(url);
@@ -419,6 +425,7 @@ export default function Home() {
         }
       }
       setClips((v) => [...v, ...added]);
+      if (added.length) { setMomentStep(1); window.scrollTo({ top: 0, behavior: "instant" }); }
     } catch (e) {
       added.forEach((c) => URL.revokeObjectURL(c.url));
       setToast((e as Error).message);
@@ -433,25 +440,58 @@ export default function Home() {
     let frame: number;
     const tick = () => {
       const elapsed = (performance.now() - started) / 1000;
-      const middleDuration = 1.8;
+      const previewClips = clipsRef.current;
+      const durations = previewClips.map(c => Math.max(0, c.end - c.start));
+      const middleDuration = previewClips.length ? durations.reduce((sum, duration) => sum + duration, 0) : 1.8;
       if (elapsed >= INTRO_SECONDS + middleDuration + OUTRO_SECONDS) {
         setPreviewPlaying(false);
         setAnimationTime(1.65);
         setDesignScene("intro");
         setPreviewDummy(1);
+        setPreviewClipIndex(0);
+        setPreviewFade(0);
         return;
       }
-      if (elapsed < INTRO_SECONDS) {
-        setPreviewDummy(1);
-        setDesignScene("intro");
-        setAnimationTime(elapsed);
-      } else if (elapsed < INTRO_SECONDS + middleDuration) {
-        setPreviewDummy(2);
-        setDesignScene("middle");
+      if (previewClips.length) {
+        let boundary = INTRO_SECONDS;
+        const boundaries: number[] = [];
+        for (let i = 0; i < durations.length - 1; i++) {
+          boundary += durations[i];
+          boundaries.push(boundary);
+        }
+        setPreviewFade(previewTransitionOpacity(elapsed, boundaries));
+        if (elapsed < INTRO_SECONDS) {
+          setPreviewClipIndex(0);
+          setDesignScene("intro");
+          setAnimationTime(elapsed);
+        } else if (elapsed < INTRO_SECONDS + middleDuration) {
+          const clipTime = elapsed - INTRO_SECONDS;
+          let start = 0;
+          let index = 0;
+          while (index < durations.length - 1 && clipTime >= start + durations[index]) {
+            start += durations[index++];
+          }
+          setPreviewClipIndex(index);
+          setDesignScene("middle");
+        } else {
+          setPreviewClipIndex(previewClips.length - 1);
+          setDesignScene("outro");
+          setAnimationTime(elapsed - INTRO_SECONDS - middleDuration);
+        }
       } else {
-        setPreviewDummy(3);
-        setDesignScene("outro");
-        setAnimationTime(elapsed - INTRO_SECONDS - middleDuration);
+        setPreviewFade(previewTransitionOpacity(elapsed, [INTRO_SECONDS, INTRO_SECONDS + middleDuration]));
+        if (elapsed < INTRO_SECONDS) {
+          setPreviewDummy(1);
+          setDesignScene("intro");
+          setAnimationTime(elapsed);
+        } else if (elapsed < INTRO_SECONDS + middleDuration) {
+          setPreviewDummy(2);
+          setDesignScene("middle");
+        } else {
+          setPreviewDummy(3);
+          setDesignScene("outro");
+          setAnimationTime(elapsed - INTRO_SECONDS - middleDuration);
+        }
       }
       frame = requestAnimationFrame(tick);
     };
@@ -482,7 +522,7 @@ export default function Home() {
     setBusy(true);
     try {
       const { renderVideo } = await import("../lib/browser-export");
-      const blob = await renderVideo(clips, filmStats);
+      const blob = await renderVideo(clips, { ...filmStats, muteAudio });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a"); a.href = url; a.download = `moaon-${dateKey()}.mp4`; a.click();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
@@ -551,7 +591,7 @@ export default function Home() {
           <img src="/yuri-app-mark.svg" alt="" />
         </div>
         <div className="page-content">
-          <div className={`page-heading ${"duck-hero"}`}>
+          {(tab !== "moments" || momentStep === 0) && <div className={`page-heading ${"duck-hero"}`}>
             <div>
               <div className="eyebrow">
                 {tab === "today"
@@ -595,7 +635,7 @@ export default function Home() {
                 weekday: "long",
               })}
             </span>
-          </div>
+          </div>}
           {tab === "today" && (
             <>
               <div className="week-strip" aria-label="이번 주 날짜">
@@ -971,44 +1011,33 @@ export default function Home() {
             </div>
           )}
           {tab === "moments" && (
-            <div className="moments-layout">
-              <div className="moments-main">
-                <section className="upload-zone">
+            <div className={`moments-layout moment-step-${momentStep}`}>
+              <input ref={fileRef} type="file" accept="video/*" multiple hidden onChange={(e) => addFiles(e.target.files)} />
+              {momentStep > 0 && <div className="moment-step-header">
+                <button type="button" className="moment-step-back" aria-label="이전 단계" disabled={busy} onClick={() => { setPreviewPlaying(false); setMomentStep(momentStep === 3 ? 2 : momentStep === 2 ? 1 : 0); window.scrollTo({ top: 0, behavior: "instant" }); }}><ChevronLeft size={20} /></button>
+                <div><span>모먼트 만들기 · {momentStep} / 3</span><h1>{momentStep === 1 ? "장면을 정리해요" : momentStep === 2 ? "영상에 분위기를 더해요" : "영상을 완성해요"}</h1></div>
+              </div>}
+              {momentStep !== 3 && <div className="moments-main">
+                {momentStep === 0 && <section className="upload-zone">
                   <div className="moment-art" aria-hidden="true">
                     <div className="moment-art-frame moment-art-frame-back" />
                     <div className="moment-art-frame moment-art-frame-front"><img src="/yuri-line.svg" alt="" /></div>
                     <span className="moment-art-play"><Play size={13} fill="currentColor" /></span>
                   </div>
                   <span className="eyebrow">영상 모으기</span>
-                  <h2>오늘의 장면을 모아보세요.</h2>
-                  <p>
-                    일상의 작은 순간을 모아
-                    <br />
-                    나만의 짧은 영상으로 남겨요.
-                  </p>
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept="video/*"
-                    multiple
-                    hidden
-                    onChange={(e) => addFiles(e.target.files)}
-                  />
+                  <h2>{clips.length ? `선택한 장면 ${clips.length}개` : "오늘의 장면을 모아보세요."}</h2>
+                  <p>{clips.length ? "장면의 순서와 길이를 정리해 보세요." : <>일상의 작은 순간을 모아<br />나만의 짧은 영상으로 남겨요.</>}</p>
                   <button
                     className="primary"
                     disabled={busy || loadingClips}
-                    onClick={() => fileRef.current?.click()}
+                    onClick={() => { if (clips.length) { setMomentStep(1); window.scrollTo({ top: 0, behavior: "instant" }); } else fileRef.current?.click(); }}
                   >
-                    {loadingClips ? (
-                      <LoaderCircle className="spin" size={18} />
-                    ) : (
-                      <Plus size={18} />
-                    )}
-                    영상 추가하기
+                    {loadingClips ? <LoaderCircle className="spin" size={18} /> : clips.length ? <ArrowRight size={18} /> : <Plus size={18} />}
+                    {loadingClips ? "불러오는 중" : clips.length ? "영상 편집하기" : "영상 추가하기"}
                   </button>
-                  <small>최대 12개 · 합계 250MB · MP4 / MOV 권장</small>
-                </section>
-                <section className="card moment-design">
+                  <small>{clips.length ? "편집 화면에서 영상을 더 추가할 수 있어요" : "최대 12개 · 합계 250MB · MP4 / MOV 권장"}</small>
+                </section>}
+                {momentStep === 2 && <section className="card moment-design">
                   <div className="section-heading">
                     <div>
                       <span className="eyebrow">영상 디자인</span>
@@ -1016,9 +1045,6 @@ export default function Home() {
                     </div>
                     <span className="format-tag">시작 3초 + 종료 2초</span>
                   </div>
-                  <p className="subtle">
-                    한 주의 성취와 유리의 실루엣으로, 나다운 영상을 완성해요.
-                  </p>
                   <div className="design-controls">
                     <label>
                       기록을 담을 주
@@ -1040,6 +1066,7 @@ export default function Home() {
                       </strong>
                     </span>
                   </div>
+                  <div className="theme-picker-heading"><strong>테마 선택</strong><span>영상의 분위기를 골라주세요</span></div>
                   <div className="theme-picker">
                     {momentThemes.map((t) => (
                       <button
@@ -1050,20 +1077,26 @@ export default function Home() {
                         className={momentTheme === t.id ? "selected" : ""}
                       >
                         <i
-                          style={{ background: t.bg, borderColor: t.accent }}
-                        />
+                          style={{ background: `linear-gradient(145deg, ${t.bg}, ${t.accent})` }}
+                        >{momentTheme === t.id && <Check size={15} strokeWidth={3} />}</i>
                         <strong>{t.name}</strong>
                         <small>{t.description}</small>
                       </button>
                     ))}
                   </div>
+                  <div className="moment-preview-layout">
                   <div className="design-stage">
-                    {previewPlaying ? (
+                    {previewPlaying && !clips.length ? (
                       <div className={`design-dummy design-dummy-${previewDummy}`} aria-label={`미리보기 임시 장면 ${previewDummy}`}>
                         <span className="dummy-orb" /><span className="dummy-shape" />
                         <small>임시 장면 {previewDummy}</small>
                       </div>
-                    ) : clips.length > 0 ? <video className="design-footage" key={designScene + previewCycle} src={clips[designScene === "intro" ? 0 : clips.length - 1].url} autoPlay muted playsInline loop onLoadedMetadata={(event) => { const c = clips[designScene === "intro" ? 0 : clips.length - 1]; event.currentTarget.currentTime = c.start; }} onTimeUpdate={(event) => { const c = clips[designScene === "intro" ? 0 : clips.length - 1]; if (event.currentTarget.currentTime >= c.end) event.currentTarget.currentTime = c.start; }} /> : <div className="design-demo-light"><span>영상 추가 시 내 영상 위에 적용됩니다</span></div>}
+                    ) : clips.length > 0 ? (() => {
+                      const index = previewPlaying ? Math.min(previewClipIndex, clips.length - 1) : designScene === "outro" ? clips.length - 1 : 0;
+                      const clip = clips[index];
+                      return <video className="design-footage" key={`${clip.id}-${designScene}-${previewCycle}`} src={clip.url} autoPlay muted playsInline loop onLoadedMetadata={(event) => { event.currentTarget.currentTime = clip.start; }} onTimeUpdate={(event) => { if (event.currentTarget.currentTime >= clip.end) event.currentTarget.currentTime = clip.start; }} />;
+                    })() : <div className="design-demo-light"><span>영상 추가 시 내 영상 위에 적용됩니다</span></div>}
+                    {previewPlaying && <span className="preview-transition" style={{ opacity: previewFade }} aria-hidden="true" />}
                     {designScene !== "middle" && <img
                       key={`${designScene}-${previewCycle}-${previewPlaying}`}
                       className="motion-overlay"
@@ -1071,7 +1104,7 @@ export default function Home() {
                       alt={designScene === "intro" ? `시작 장면: 주간 달성률 ${filmStats.percent}%, ${filmStats.minutes}분` : "종료 장면: 모아온. 작은 오늘을 모아, 더 나은 나로."}
                     />}
                     <span className="scene-badge">
-                      {designScene === "intro" ? "OPENING · 3s" : designScene === "outro" ? "ENDING · 2s" : "임시 장면 2"}
+                      {designScene === "intro" ? "OPENING · 3s" : designScene === "outro" ? "ENDING · 2s" : clips.length ? `컷 ${previewClipIndex + 1} / ${clips.length}` : "임시 장면 2"}
                     </span>
                   </div>
                   <div className="scene-controls">
@@ -1096,7 +1129,9 @@ export default function Home() {
                       종료 장면
                     </button>
                     <button
+                      disabled={clips.length > 0 && invalidCuts}
                       onClick={() => {
+                        setPreviewClipIndex(0);
                         setPreviewPlaying(true);
                         setPreviewCycle((v) => v + 1);
                       }}
@@ -1105,11 +1140,13 @@ export default function Home() {
                       {previewPlaying ? "재생 중" : "앞뒤 미리보기"}
                     </button>
                   </div>
+                  </div>
                   <p className="design-note">
-                    앞뒤 미리보기는 임시 장면 3개로 전환 흐름을 보여줘요. 실제 영상에는 선택한 컷이 적용됩니다.
+                    {clips.length ? "추가한 영상의 선택 구간을 순서대로 보여줘요. 미리보기는 소리 없이 재생됩니다." : "영상을 추가하면 선택한 컷으로 미리 볼 수 있어요. 지금은 임시 장면을 보여줍니다."}
                   </p>
-                </section>
-                {clips.length > 0 && (
+                  <button type="button" className="primary moment-next moment-design-next" disabled={!clips.length || busy || invalidCuts || exportSeconds > 60} onClick={() => { setPreviewPlaying(false); setMomentStep(3); window.scrollTo({ top: 0, behavior: "instant" }); }}>다음 <ArrowRight size={17} /></button>
+                </section>}
+                {momentStep === 1 && (
                   <section className="card clip-list">
                     <div className="section-heading">
                       <h2>
@@ -1117,18 +1154,57 @@ export default function Home() {
                       </h2>
                       <span className="subtle">순서와 구간을 조절하세요</span>
                     </div>
+                    {!clips.length && <p className="moment-empty-cuts">영상을 추가해 첫 장면을 만들어보세요.</p>}
                     {clips.map((c, i) => (
                       <div className="clip" key={c.id}>
                         <div className="clip-head">
-                          <span className="clip-index">
-                            {String(i + 1).padStart(2, "0")}
-                          </span>
-                          <button
-                            className="clip-name"
-                            onClick={() => setPreview(c.id)}
-                          >
-                            {c.file.name}
-                          </button>
+                          <ClipThumbnail url={c.url} start={c.start} duration={c.duration} name={c.file.name} onClick={() => setPreview(preview === c.id ? null : c.id)} />
+                          <div className="clip-details">
+                          <span className="clip-index">컷 {String(i + 1).padStart(2, "0")} · 선택 {Math.max(0, c.end - c.start).toFixed(1)}초</span>
+                        <div className="clip-controls">
+                          <label>
+                            <input aria-label={`${i + 1}번 컷 시작 시간 (초)`}
+                              type="number"
+                              min="0"
+                              step="0.1"
+                              max={c.duration}
+                              value={c.start}
+                              disabled={busy}
+                              onChange={(e) =>
+                                setClips((v) =>
+                                  v.map((x) =>
+                                    x.id === c.id
+                                      ? { ...x, start: Number(e.target.value) }
+                                      : x,
+                                  ),
+                                )
+                              }
+                            />
+                          </label>
+                          <span>→</span>
+                          <label>
+                            <input aria-label={`${i + 1}번 컷 끝 시간 (초)`}
+                              type="number"
+                              min="0.1"
+                              step="0.1"
+                              max={c.duration}
+                              value={c.end}
+                              disabled={busy}
+                              onChange={(e) =>
+                                setClips((v) =>
+                                  v.map((x) =>
+                                    x.id === c.id
+                                      ? { ...x, end: Number(e.target.value) }
+                                      : x,
+                                  ),
+                                )
+                              }
+                            />
+                          </label>
+                          <span className="clip-seconds">초</span>
+                        </div>
+                          </div>
+                          <div className="clip-actions">
                           <button
                             className="icon-button"
                             aria-label={`${i + 1}번 컷 위로`}
@@ -1169,53 +1245,7 @@ export default function Home() {
                           >
                             <X size={17} />
                           </button>
-                        </div>
-                        <div className="clip-controls">
-                          <label>
-                            시작 (초)
-                            <input
-                              type="number"
-                              min="0"
-                              step="0.1"
-                              max={c.duration}
-                              value={c.start}
-                              disabled={busy}
-                              onChange={(e) =>
-                                setClips((v) =>
-                                  v.map((x) =>
-                                    x.id === c.id
-                                      ? { ...x, start: Number(e.target.value) }
-                                      : x,
-                                  ),
-                                )
-                              }
-                            />
-                          </label>
-                          <span>→</span>
-                          <label>
-                            끝 (초)
-                            <input
-                              type="number"
-                              min="0.1"
-                              step="0.1"
-                              max={c.duration}
-                              value={c.end}
-                              disabled={busy}
-                              onChange={(e) =>
-                                setClips((v) =>
-                                  v.map((x) =>
-                                    x.id === c.id
-                                      ? { ...x, end: Number(e.target.value) }
-                                      : x,
-                                  ),
-                                )
-                              }
-                            />
-                          </label>
-                          <small>
-                            원본 {c.duration.toFixed(1)}초<br />
-                            선택 {(c.end - c.start).toFixed(1)}초
-                          </small>
+                          </div>
                         </div>
                         {preview === c.id && (
                           <video
@@ -1227,10 +1257,13 @@ export default function Home() {
                         )}
                       </div>
                     ))}
+                    <button type="button" className="moment-add-more" disabled={busy || loadingClips || clips.length >= 12} onClick={() => fileRef.current?.click()}><Plus size={17} /> {loadingClips ? "불러오는 중" : "영상 추가하기"}</button>
+                    <div className="moment-step-footer"><span>선택한 영상 {clips.length}개 · {clipSeconds.toFixed(1)}초</span><button type="button" className="primary moment-next" disabled={!clips.length || busy || loadingClips || invalidCuts || exportSeconds > 60} onClick={() => { setMomentStep(2); window.scrollTo({ top: 0, behavior: "instant" }); }}>다음 <ArrowRight size={17} /></button></div>
+                    {(invalidCuts || exportSeconds > 60) && <p className="moment-step-error">{invalidCuts ? "각 컷의 시작과 끝 구간을 확인해주세요." : "선택한 영상은 합계 55초까지 담을 수 있어요."}</p>}
                   </section>
                 )}
-              </div>
-              <aside className="export-panel card">
+              </div>}
+              {momentStep === 3 && <aside className="export-panel card">
                 <div className="section-heading">
                   <h2>내보내기</h2>
                   <span className="format-tag">MP4</span>
@@ -1270,12 +1303,14 @@ export default function Home() {
                     해상도<strong>720 × 1280</strong>
                   </span>
                   <span>
-                    오디오<strong>원본 소리 유지</strong>
-                  </span>
-                  <span>
                     영상 보관<strong>기기에서만 처리</strong>
                   </span>
                 </div>
+                <label className="export-mute">
+                  <span><strong>영상 음소거</strong><small>{muteAudio ? "소리 없이 저장" : "원본 소리 포함"}</small></span>
+                  <input type="checkbox" checked={muteAudio} disabled={busy} onChange={(event) => setMuteAudio(event.target.checked)} />
+                  <span className="export-mute-switch" aria-hidden="true" />
+                </label>
                 <button
                   className="primary export-button"
                   onClick={exportVideo}
@@ -1298,7 +1333,7 @@ export default function Home() {
                   <Leaf size={15} />
                   영상은 이 기기에서 처리되며 서버로 전송되지 않아요. 변환하는 동안 이 화면을 열어두세요.
                 </p>
-              </aside>
+              </aside>}
             </div>
           )}
         </div>

@@ -3,7 +3,19 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "모아온 — 작은 오늘을 모아, 더 나은 나로",
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, title: "모아온", statusBarStyle: "default" },
+  appleWebApp: {
+    capable: true,
+    title: "모아온",
+    statusBarStyle: "default",
+    startupImage: [
+      [320, 568, 2], [375, 667, 2], [414, 736, 3], [375, 812, 3],
+      [360, 780, 3], [390, 844, 3], [393, 852, 3], [402, 874, 3],
+      [414, 896, 2], [414, 896, 3], [428, 926, 3], [430, 932, 3], [440, 956, 3],
+    ].map(([width, height, scale]) => ({
+      url: `/startup/${width}x${height}@${scale}.png`,
+      media: `(device-width: ${width}px) and (device-height: ${height}px) and (-webkit-device-pixel-ratio: ${scale}) and (orientation: portrait)`,
+    })),
+  },
   icons: { apple: "/icon-180.png" },
   description:
     "꾸준히 모아온 시간과 순간. 유리(유령오리)와 함께 주간 목표를 채우고 나만의 영상을 만들어보세요.",
